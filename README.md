@@ -23,7 +23,7 @@ All are first-class and composable.
 ## Example: Basic Positionals
 
 ```py
-from cliargparse import Command
+from cliargparse import Command, ParseMode
 
 root = Command("root")
 
@@ -41,6 +41,7 @@ print(root.parse_input(source))
 
 ```py
 from cliargparse import Command
+from cliargparse.actions import store_true_action, count_presence_action
 
 root = Command("root")
 
@@ -92,63 +93,6 @@ print(root.parse_input(source))
 ```
 
 Only one option in a mutex group can be provided.
-
----
-
-## NArgs
-
-Controls how many values an argument consumes:
-
-```py
-class NArgs(StrEnum):
-    OPTIONAL = "?"
-    ZERO_OR_MORE = "*"
-    ONE_OR_MORE = "+"
-```
-
----
-
-## Built-in Actions
-
-### store_value_action
-```py
-store_value_action(option, values)
-```
-
-### store_present_action
-```py
-store_present_action(option, values)
-```
-
-### store_true_action
-```py
-store_true_action(option, values)
-```
-
-### store_false_action
-```py
-store_false_action(option, values)
-```
-
-### append_present_action
-```py
-append_present_action(option, values)
-```
-
-### append_value_action
-```py
-append_value_action(option, values)
-```
-
-### extend_value_action
-```py
-extend_value_action(option, values)
-```
-
-### count_presence_action
-```py
-count_presence_action(option, values)
-```
 
 ---
 
