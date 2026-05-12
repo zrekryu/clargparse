@@ -1,0 +1,155 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from cliargparse.enums import NArgs, OptionPrefix
+
+from .base import ParserError
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from cliargparse.models import MutexOptionGroup
+    from cliargparse.models.parameters import Option
+
+
+class UnknownOptionError(ParserError):
+    def __init__(self, specifier: str) -> None:
+        super().__init__(specifier)
+
+        self.specifier = specifier
+
+    def __str__(self) -> str:
+        return f"unknown option: {self.specifier}"
+
+
+class UnknownLongOptionError(UnknownOptionError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f"{OptionPrefix.LONG}{name}")
+
+        self.name = name
+
+    def __str__(self) -> str:
+        return f"unknown long option: {self.specifier}"
+
+
+class UnknownShortOptionError(UnknownOptionError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f"{OptionPrefix.SHORT}{name}")
+
+        self.name = name
+
+    def __str__(self) -> str:
+        return f"unknown short option: {self.specifier}"
+
+
+class UnknownShortOptionInGroupError(UnknownShortOptionError):
+    def __init__(self, name: str, group: str) -> None:
+        super().__init__(name)
+
+        self.group = group
+
+    def __str__(self) -> str:
+        return f"unknown short option {self.name!r} in group {self.group!r}"
+
+
+class OptionTakesNoArgumentsError(ParserError):
+    def __init__(self, specifier: str, argument: str) -> None:
+        super().__init__(specifier, argument)
+
+        self.specifier = specifier
+        self.argument = argument
+
+    def __str__(self) -> str:
+        return f"option {self.specifier!r} takes no argument, but got {self.argument!r}"
+
+
+class OptionTakingArgumentInGroupError(ParserError):
+    def __init__(self, name: str, group: str) -> None:
+        super().__init__(name, group)
+
+        self.name = name
+        self.group = group
+
+    def __str__(self) -> str:
+        return (
+            f"option {self.name!r} in group "
+            f"'{OptionPrefix.SHORT}{self.group}' "
+            "must not take an argument"
+        )
+
+
+class MissingOptionArgumentsError(ParserError):
+    def __init__(
+        self,
+        specifier: str,
+        nargs: int | NArgs,
+        received_nargs: int,
+    ) -> None:
+        super().__init__(specifier, nargs, received_nargs)
+
+        self.specifier = specifier
+        self.nargs = nargs
+        self.received_nargs = received_nargs
+
+    def __str__(self) -> str:
+        s = "s" if isinstance(self.nargs, int) and self.nargs != 1 else ""
+
+        return (
+            f"option {self.specifier!r} expected "
+            f"{self.nargs} argument{s}, "
+            f"got {self.received_nargs}"
+        )
+
+
+class InvalidOptionChoiceError(ParserError):
+    def __init__(
+        self,
+        specifier: str,
+        choice: str,
+        choices: Sequence[str],
+    ) -> None:
+        super().__init__(specifier, choice, choices)
+
+        self.specifier = specifier
+        self.choice = choice
+        self.choices = choices
+
+    def __str__(self) -> str:
+        return (
+            f"invalid choice {self.choice!r} "
+            f"for option {self.specifier!r} "
+            f"(choices: {', '.join(self.choices)})"
+        )
+
+
+class MissingRequiredOptionsError(ParserError):
+    def __init__(self, options: Sequence[Option[Any]]) -> None:
+        super().__init__(options)
+
+        self.options = options
+
+    def __str__(self) -> str:
+        return (
+            f"missing required options: {', '.join(option.display_name for option in self.options)}"
+        )
+
+
+class MutexOptionCannotCoexistError(ParserError):
+    def __init__(self, specifier: str, conflicts: Sequence[str]) -> None:
+        self.specifier = specifier
+        self.conflicts = conflicts
+
+    def __str__(self) -> str:
+        conflicts = ", ".join(map(repr, self.conflicts))
+        return f"option {self.specifier!r} cannot coexist with {conflicts}"
+
+
+class MissingRequiredMutexOptionError(ParserError):
+    def __init__(self, group: MutexOptionGroup) -> None:
+        self.group = group
+
+    def __str__(self) -> str:
+        options = ", ".join(option.display_name for option in self.group.options)
+        return f"one of the mutually exclusive options ({options}) is required"
