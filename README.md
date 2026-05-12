@@ -23,6 +23,8 @@ All are first-class and composable.
 ## Example: Basic Positionals
 
 ```py
+from cliargparse import Command
+
 root = Command("root")
 
 mv = root.subcommand("mv", parse_mode=ParseMode.POSITIONAL)
@@ -38,6 +40,8 @@ print(root.parse_input(source))
 ## Example: Options + Actions
 
 ```py
+from cliargparse import Command
+
 root = Command("root")
 
 root.option("--verbose", "-v", action=store_true_action)
@@ -52,13 +56,15 @@ print(root.parse_input(source))
 ## Example: Subcommands
 
 ```py
+from cliargparse import Command, ParseMode
+
 root = Command("root")
 
-mv = root.subcommand("mv")
+mv = root.subcommand("mv", parse_mode=ParseMode.POSITIONAL)
 mv.positional("src")
 mv.positional("dest")
 
-cp = root.subcommand("cp")
+cp = root.subcommand("cp", parse_mode=ParseMode.POSITIONAL)
 cp.positional("src")
 cp.positional("dest")
 
@@ -71,6 +77,9 @@ print(root.parse_input(source))
 ## Example: Mutex Option Groups
 
 ```py
+from cliargparse import Command
+from cliargparse.actions import store_true_action
+
 root = Command("root")
 
 group = root.mutex_option_group(required=True)
