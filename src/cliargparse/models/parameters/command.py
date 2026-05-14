@@ -262,15 +262,15 @@ class Command(Parameter):
         from cliargparse.lexer import lex  # noqa: PLC0415
         from cliargparse.parser import parse  # noqa: PLC0415
 
-        lexemes: Iterable[str]
+        arguments: Iterable[str]
         if isinstance(data, str):
             import shlex  # noqa: PLC0415
 
-            lexemes = shlex.split(data)
+            arguments = shlex.split(data)
         else:
-            lexemes = data
+            arguments = data
 
-        tokens = lex(lexemes)
+        tokens = lex(arguments)
 
         node = parse(tokens, self)
         return Namespace.from_node(node)
