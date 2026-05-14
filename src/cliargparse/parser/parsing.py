@@ -118,33 +118,30 @@ def _parse_short_option(token: OptionToken, context: ParseContext) -> OptionNode
 
 
 def _handle_short_option_group(token: ShortOptionGroupToken, context: ParseContext) -> None:
-    for node in _parse_short_option_group(token, context):
+    for option_token in token.options:
+        node = _parse_grouped_short_option(option_token, token, context)
         context.node.options[node.option] = node
 
 
-def _parse_short_option_group(
-    token: ShortOptionGroupToken,
+def _parse_grouped_short_option(
+    token: OptionToken,
+    group: ShortOptionGroupToken,
     context: ParseContext,
-) -> tuple[OptionNode, ...]:
-    nodes: list[OptionNode] = []
-    for option_token in token.options:
-        option = context.node.command.get_short_option(option_token.name)
-        if not option:
-            raise UnknownShortOptionInGroupError(option_token.name, token.option_names)
+) -> OptionNode:
+    option = context.node.command.get_short_option(token.name)
+    if not option:
+        raise UnknownShortOptionInGroupError(token.name, group.option_names)
 
-        if option.takes_arguments:
-            raise OptionTakingArgumentInGroupError(option_token.name, token.option_names)
+    if option.takes_arguments:
+        raise OptionTakingArgumentInGroupError(token.name, group.option_names)
 
-        current_value: Any | None = None
-        if current_option := context.node.options.get(option):
-            current_value = current_option.values
+    current_value: Any | None = None
+    if current_option := context.node.options.get(option):
+        current_value = current_option.values
 
-        values = option.action(option, (), current_value=current_value)
+    values = option.action(option, (), current_value=current_value)
 
-        node = OptionNode(option_token.specifier, option, values)
-        nodes.append(node)
-
-    return tuple(nodes)
+    return OptionNode(token.specifier, option, values)
 
 
 def _consume_and_validate_option_arguments(
