@@ -70,7 +70,7 @@ def parse(tokens: Iterable[LexerToken], command: Command) -> CommandNode:
             case _:
                 assert_never(token)
 
-    _validate_command_node(node)
+    _validate_command(node)
 
     return node
 
@@ -152,13 +152,13 @@ def _consume_and_validate_option_arguments(
     option: Option[Any],
     token_stream: TokenStream,
 ) -> tuple[Any, ...]:
-    if not option.takes_arguments and token.argument is not None:
-        raise OptionTakesNoArgumentsError(token.specifier, token.argument)
+    if not option.takes_arguments and token.value is not None:
+        raise OptionTakesNoArgumentsError(token.specifier, token.value)
 
     values: tuple[Any, ...]
     if option.takes_arguments:
-        if token.argument is not None:
-            values = (token.argument,)
+        if token.value is not None:
+            values = (option.type_converter(token.value),)
         else:
             values = _consume_arguments(
                 option.nargs,
@@ -191,9 +191,9 @@ def _handle_command(token: ArgumentToken, context: ParseContext) -> None:
 
 
 def _parse_command(token: ArgumentToken, context: ParseContext) -> Command:
-    command = context.node.command.get_subcommand(token.lexeme)
+    command = context.node.command.get_subcommand(token.argument)
     if not command:
-        raise UnknownCommandError(token.lexeme)
+        raise UnknownCommandError(token.argument)
 
     return command
 
@@ -207,7 +207,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
     try:
         positional = context.node.command.get_positional_by_index(context.positional_index)
     except IndexError:
-        raise UnexpectedPositionalArgumentError(token.lexeme) from None
+        raise UnexpectedPositionalArgumentError(token.argument) from None
 
     arguments = _consume_arguments(
         positional.nargs,
@@ -261,7 +261,7 @@ def _consume_arguments(
             case _:
                 assert_never(nargs)
 
-        values.append(type_converter(token.lexeme))
+        values.append(type_converter(token.argument))
 
         token_stream.consume()
 
@@ -275,7 +275,7 @@ def _is_valid_nargs_count(nargs: int | NArgs, count: int) -> bool:
     return count >= nargs
 
 
-def _validate_command_node(node: CommandNode) -> None:
+def _validate_command(node: CommandNode) -> None:
     if options := node.command.options:
         _validate_options(options, node.options)
 
@@ -289,7 +289,7 @@ def _validate_command_node(node: CommandNode) -> None:
         )
 
     if subcommand := node.subcommand:
-        _validate_command_node(subcommand)
+        _validate_command(subcommand)
 
     if positionals := node.command.positionals:
         _validate_positionals(positionals, node.positionals)

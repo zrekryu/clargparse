@@ -13,5 +13,6 @@ dist/
 build/
 *.egg-info/
 
+.dmypy.json
 test*.py
 ruff.sh

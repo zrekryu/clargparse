@@ -31,6 +31,8 @@ ignore = [
     "PLR0913",  # too-many-arguments,
 ]
 select = ["ALL"]
+extend-select = ["FA"]
+
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -45,5 +47,5 @@ spaces_before_inline_comment = 2
 spaces_indent_inline_array = 4
 trailing_comma_inline_array = true
 
-[tool.tomlsort.overrides."tool.ruff.lint.select"]
+[tool.tomlsort.overrides."tool.ruff.lint.ignore"]
 inline_arrays = true

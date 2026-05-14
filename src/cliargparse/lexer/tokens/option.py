@@ -9,7 +9,7 @@ from .token import Token
 class OptionToken(Token):
     prefix: OptionPrefix
     name: str
-    argument: str | None = None
+    value: str | None = None
 
     @property
     def specifier(self) -> str:

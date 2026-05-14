@@ -12,76 +12,76 @@ END_OF_OPTIONS: Final[str] = "--"
 OPTION_ARGUMENT_DELIMITER: Final[str] = "="
 
 
-def lex(lexemes: Iterable[str]) -> Generator[LexerToken]:
+def lex(arguments: Iterable[str]) -> Generator[LexerToken]:
     end_of_options = False
 
-    for lexeme in lexemes:
-        if lexeme.startswith(OptionPrefix.LONG):
-            if lexeme[len(OptionPrefix.LONG) :].isdigit():
-                yield ArgumentToken(lexeme)
+    for argument in arguments:
+        if argument.startswith(OptionPrefix.LONG):
+            if argument[len(OptionPrefix.LONG) :].isdigit():
+                yield ArgumentToken(argument)
                 continue
             elif not end_of_options:
-                if lexeme == END_OF_OPTIONS:
+                if argument == END_OF_OPTIONS:
                     end_of_options = True
                     continue
 
-                yield _lex_long_option(lexeme)
+                yield _lex_long_option(argument)
                 continue
-        elif lexeme.startswith(OptionPrefix.SHORT):
-            if lexeme == OptionPrefix.SHORT or lexeme[len(OptionPrefix.SHORT) :].isdigit():
-                yield ArgumentToken(lexeme)
+        elif argument.startswith(OptionPrefix.SHORT):
+            if argument == OptionPrefix.SHORT or argument[len(OptionPrefix.SHORT) :].isdigit():
+                yield ArgumentToken(argument)
                 continue
             elif not end_of_options:
-                yield _lex_short_option_or_group(lexeme)
+                yield _lex_short_option_or_group(argument)
                 continue
 
-        yield ArgumentToken(lexeme)
+        yield ArgumentToken(argument)
 
 
-def _lex_long_option(lexeme: str) -> OptionToken:
-    argument: str | None
-    name, sep, argument = lexeme.removeprefix(OptionPrefix.LONG).partition(
+def _lex_long_option(argument: str) -> OptionToken:
+    value: str | None
+    name, sep, value = argument.removeprefix(OptionPrefix.LONG).partition(
         OPTION_ARGUMENT_DELIMITER,
     )
 
     if not name:
-        raise MissingOptionNameError(lexeme)
+        raise MissingOptionNameError(argument)
 
     if not sep:
-        argument = None
+        value = None
 
     return OptionToken(
-        lexeme=lexeme,
+        argument=argument,
         prefix=OptionPrefix.LONG,
         name=name,
-        argument=argument,
+        value=value,
     )
 
 
-def _lex_short_option_or_group(lexeme: str) -> OptionToken | ShortOptionGroupToken:
-    unprefixed_lexeme = lexeme.removeprefix(OptionPrefix.SHORT)
-    if len(unprefixed_lexeme) > 1 and unprefixed_lexeme[1] != OPTION_ARGUMENT_DELIMITER:
+def _lex_short_option_or_group(argument: str) -> OptionToken | ShortOptionGroupToken:
+    unprefixed_argument = argument.removeprefix(OptionPrefix.SHORT)
+    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_ARGUMENT_DELIMITER:
         return ShortOptionGroupToken(
-            lexeme,
-            tuple(OptionToken(name, OptionPrefix.SHORT, name) for name in unprefixed_lexeme),
+            argument,
+            tuple(OptionToken(name, OptionPrefix.SHORT, name) for name in unprefixed_argument),
         )
 
-    return _build_short_option(lexeme, unprefixed_lexeme)
+    return _build_short_option(argument, unprefixed_argument)
 
 
-def _build_short_option(lexeme: str, unprefixed_lexeme: str) -> OptionToken:
-    argument: str | None
-    name, sep, argument = unprefixed_lexeme.partition(OPTION_ARGUMENT_DELIMITER)
+def _build_short_option(argument: str, unprefixed_argument: str) -> OptionToken:
+    value: str | None
+    name, sep, value = unprefixed_argument.partition(OPTION_ARGUMENT_DELIMITER)
 
-    if len(name) != 1:
+    if len(name) > 1:
         raise ShortOptionNameTooLongError(name)
 
     if not sep:
-        argument = None
+        value = None
 
     return OptionToken(
-        lexeme=lexeme,
+        argument=argument,
         prefix=OptionPrefix.SHORT,
         name=name,
-        argument=argument,
+        value=value,
     )
