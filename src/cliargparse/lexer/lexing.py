@@ -9,7 +9,7 @@ from .tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
 
 
 END_OF_OPTIONS: Final[str] = "--"
-OPTION_ARGUMENT_DELIMITER: Final[str] = "="
+OPTION_VALUE_DELIMITER: Final[str] = "="
 
 
 def lex(arguments: Iterable[str]) -> Generator[LexerToken]:
@@ -41,7 +41,7 @@ def lex(arguments: Iterable[str]) -> Generator[LexerToken]:
 def _lex_long_option(argument: str) -> OptionToken:
     value: str | None
     name, sep, value = argument.removeprefix(OptionPrefix.LONG).partition(
-        OPTION_ARGUMENT_DELIMITER,
+        OPTION_VALUE_DELIMITER,
     )
 
     if not name:
@@ -60,7 +60,7 @@ def _lex_long_option(argument: str) -> OptionToken:
 
 def _lex_short_option_or_group(argument: str) -> OptionToken | ShortOptionGroupToken:
     unprefixed_argument = argument.removeprefix(OptionPrefix.SHORT)
-    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_ARGUMENT_DELIMITER:
+    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_VALUE_DELIMITER:
         return ShortOptionGroupToken(
             argument,
             tuple(OptionToken(name, OptionPrefix.SHORT, name) for name in unprefixed_argument),
@@ -71,7 +71,7 @@ def _lex_short_option_or_group(argument: str) -> OptionToken | ShortOptionGroupT
 
 def _build_short_option(argument: str, unprefixed_argument: str) -> OptionToken:
     value: str | None
-    name, sep, value = unprefixed_argument.partition(OPTION_ARGUMENT_DELIMITER)
+    name, sep, value = unprefixed_argument.partition(OPTION_VALUE_DELIMITER)
 
     if len(name) > 1:
         raise ShortOptionNameTooLongError(name)
