@@ -18,7 +18,6 @@ class Action[P: Parameter](Protocol):
         self,
         parameter: P,
         values: Sequence[Any],
-        /,
         *,
         current_value: Any = None,
     ) -> Any: ...
