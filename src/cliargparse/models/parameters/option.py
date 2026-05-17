@@ -144,6 +144,15 @@ class Option[T](Parameter):
             else:
                 nargs = 1
 
+        if action in (store_present_action, append_present_action) and present is None:
+            action_name = getattr(action, "__name__", repr(action))
+            exc_message = f"Missing present argument for action {action_name!r}"
+            raise ValueError(exc_message)
+
+        if present is not None and nargs != NArgs.OPTIONAL:
+            exc_message = f"present argument must be used with {NArgs.OPTIONAL!r}, got {nargs!r}"
+            raise ValueError(exc_message)
+
         return cls(
             long_names=long_names,
             short_names=short_names,

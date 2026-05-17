@@ -1,12 +1,5 @@
 from .lexer import LexerError, MissingOptionNameError, ShortOptionNameTooLongError
-from .parameters import (
-    DuplicateOptionSpecifierError,
-    DuplicatePositionalNameError,
-    DuplicateSubcommandNameError,
-    ParameterError,
-    ParseModeError,
-    PositionalAfterVariadicPositionalError,
-)
+from .parameters import ParameterError, ParseModeError
 from .parser import (
     InvalidOptionChoiceError,
     InvalidPositionalChoiceError,
@@ -30,9 +23,6 @@ from .parser import (
 
 
 __all__ = [
-    "DuplicateOptionSpecifierError",
-    "DuplicatePositionalNameError",
-    "DuplicateSubcommandNameError",
     "InvalidOptionChoiceError",
     "InvalidPositionalChoiceError",
     "LexerError",
@@ -48,7 +38,6 @@ __all__ = [
     "ParameterError",
     "ParseModeError",
     "ParserError",
-    "PositionalAfterVariadicPositionalError",
     "ShortOptionNameTooLongError",
     "SubcommandRequiredError",
     "UnexpectedPositionalArgumentError",

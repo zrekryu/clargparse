@@ -5,13 +5,7 @@ import sys
 from typing import TYPE_CHECKING, Any
 
 from cliargparse.enums import NArgs, ParseMode
-from cliargparse.exceptions import (
-    DuplicateOptionSpecifierError,
-    DuplicatePositionalNameError,
-    DuplicateSubcommandNameError,
-    ParseModeError,
-    PositionalAfterVariadicPositionalError,
-)
+from cliargparse.exceptions import ParseModeError
 
 
 if TYPE_CHECKING:
@@ -43,15 +37,15 @@ class Command(Parameter):
         self.parse_mode = parse_mode or ParseMode.COMMAND
         self.subcommand_required = subcommand_required
 
+        self._subcommands: list[Command] = []
+        self._name_to_subcommand: dict[str, Command] = {}
+
         self._options: list[Option[Any]] = []
         self._long_name_to_option: dict[str, Option[Any]] = {}
         self._short_name_to_option: dict[str, Option[Any]] = {}
         self._specifier_to_option: dict[str, Option[Any]] = {}
 
         self._mutex_option_groups: list[MutexOptionGroup] = []
-
-        self._subcommands: list[Command] = []
-        self._name_to_subcommand: dict[str, Command] = {}
 
         self._positionals: list[Positional[Any]] = []
         self._name_to_positional: dict[str, Positional[Any]] = {}
@@ -94,10 +88,69 @@ class Command(Parameter):
     def variadic_positional(self) -> Positional[Any] | None:
         return self._variadic_positional
 
+    def add_subcommand(self, subcommand: Command, /) -> None:
+        if self.parse_mode != ParseMode.COMMAND:
+            exc_message = f"Subcommands are not allowed in {self.parse_mode.name} parse mode"
+            raise ParseModeError(exc_message)
+
+        for name in subcommand.names:
+            if name in self._name_to_subcommand:
+                exc_message = f"command {name!r} already exists"
+                raise ValueError(exc_message)
+
+        self._name_to_subcommand.update(dict.fromkeys(subcommand.names, subcommand))
+        self._subcommands.append(subcommand)
+
+    def subcommand(
+        self,
+        name: str,
+        *,
+        parse_mode: ParseMode | None = None,
+        subcommand_required: bool = False,
+    ) -> Command:
+        subcommand = Command(
+            name=name,
+            parse_mode=parse_mode,
+            subcommand_required=subcommand_required,
+        )
+        self.add_subcommand(subcommand)
+
+        return subcommand
+
+    def has_subcommand(self, key: str | Command, /) -> bool:
+        if isinstance(key, str):
+            return key in self._name_to_subcommand
+
+        return key in self._subcommands
+
+    def get_subcommand(self, name: str, /) -> Command | None:
+        return self._name_to_subcommand.get(name)
+
+    def remove_subcommand(self, key: str | Command, /) -> Command:
+        if isinstance(key, str):
+            subcommand = self.get_subcommand(key)
+            if not subcommand:
+                exc_message = f"subcommand {key!r} not found"
+                raise ValueError(exc_message)
+        else:
+            subcommand = key
+
+        try:
+            self._subcommands.remove(subcommand)
+        except ValueError:
+            exc_message = f"subcommand not found: {subcommand}"
+            raise ValueError(exc_message) from None
+
+        for name in subcommand.names:
+            del self._name_to_subcommand[name]
+
+        return subcommand
+
     def add_option(self, option: Option[Any]) -> None:
         for specifier in option.specifiers:
-            if existing_option := self._specifier_to_option.get(specifier):
-                raise DuplicateOptionSpecifierError(specifier, existing_option, option)
+            if specifier in self._specifier_to_option:
+                exc_message = f"option {specifier!r} already exists"
+                raise ValueError(exc_message)
 
         self._long_name_to_option.update(dict.fromkeys(option.long_names, option))
         self._short_name_to_option.update(dict.fromkeys(option.short_names, option))
@@ -139,6 +192,12 @@ class Command(Parameter):
 
         return option
 
+    def has_option(self, key: str | Option[Any], /) -> bool:
+        if isinstance(key, str):
+            return key in self._specifier_to_option
+
+        return key in self._options
+
     def get_long_option(self, name: str, /) -> Option[Any] | None:
         return self._long_name_to_option.get(name)
 
@@ -148,17 +207,11 @@ class Command(Parameter):
     def get_option(self, specifier: str, /) -> Option[Any] | None:
         return self._specifier_to_option.get(specifier)
 
-    def has_option(self, option: str | Option[Any], /) -> bool:
-        if isinstance(option, str):
-            return option in self._specifier_to_option
-
-        return option in self._options
-
     def remove_option(self, key: str | Option[Any], /) -> Option[Any]:
         if isinstance(key, str):
             option = self.get_option(key)
             if not option:
-                exc_message = f"Option with specifier {key!r} not found"
+                exc_message = f"option with specifier {key!r} not found"
                 raise ValueError(exc_message)
         else:
             option = key
@@ -166,7 +219,7 @@ class Command(Parameter):
         try:
             self._options.remove(option)
         except ValueError:
-            exc_message = f"Option not found: {option}"
+            exc_message = f"option not found: {option}"
             raise ValueError(exc_message) from None
 
         for specifier in option.specifiers:
@@ -182,47 +235,44 @@ class Command(Parameter):
 
         return group
 
-    def add_subcommand(self, subcommand: Command, /) -> None:
-        if self.parse_mode != ParseMode.COMMAND:
-            exc_message = f"Subcommands are not allowed in {self.parse_mode.name} parse mode"
-            raise ParseModeError(exc_message)
+    def has_mutex_option_group(self, group: MutexOptionGroup, /) -> bool:
+        return group in self._mutex_option_groups
 
-        for name in subcommand.names:
-            if existing_subcommand := self._name_to_subcommand.get(name):
-                raise DuplicateSubcommandNameError(name, existing_subcommand, subcommand)
+    def remove_mutex_option_group(self, group: MutexOptionGroup, /) -> None:
+        if group not in self._mutex_option_groups:
+            exc_message = f"Mutex option group not found: {group}"
+            raise ValueError(exc_message)
 
-        self._name_to_subcommand.update(dict.fromkeys(subcommand.names, subcommand))
-        self._subcommands.append(subcommand)
+        for option in group:
+            self.remove_option(option)
 
-    def subcommand(
-        self,
-        name: str,
-        *,
-        parse_mode: ParseMode | None = None,
-        subcommand_required: bool = False,
-    ) -> Command:
-        subcommand = Command(
-            name=name,
-            parse_mode=parse_mode,
-            subcommand_required=subcommand_required,
-        )
-        self.add_subcommand(subcommand)
-
-        return subcommand
-
-    def get_subcommand(self, name: str, /) -> Command | None:
-        return self._name_to_subcommand.get(name)
+        self._mutex_option_groups.remove(group)
 
     def add_positional(self, positional: Positional[Any], /) -> None:
         if self.parse_mode != ParseMode.POSITIONAL:
-            exc_message = f"Positionals are not allowed in {self.parse_mode.name} parse mode"
+            exc_message = f"positionals are not allowed in {self.parse_mode.name} parse mode"
             raise ParseModeError(exc_message)
 
-        if existing_positional := self._name_to_positional.get(positional.name):
-            raise DuplicatePositionalNameError(positional.name, existing_positional, positional)
+        if positional.name in self._name_to_positional:
+            exc_message = f"positional {self.name!r} already exists"
+            raise ValueError(exc_message)
 
-        if self.variadic_positional:
-            raise PositionalAfterVariadicPositionalError(self.variadic_positional)
+        if self._variadic_positional:
+            exc_message = (
+                "cannot add positional "
+                f"after variadic positional {self._variadic_positional.name!r}"
+            )
+            raise ValueError(exc_message)
+
+        if (
+            positional.default is None
+            and self._positionals
+            and self._positionals[-1].default is not None
+        ):
+            exc_message = (
+                "positional without default argument cannot follow positional with default argument"
+            )
+            raise ValueError(exc_message)
 
         if isinstance(positional.nargs, NArgs) and positional.nargs.is_variadic:
             self._variadic_positional = positional
@@ -252,11 +302,37 @@ class Command(Parameter):
 
         return positional
 
+    def has_positional(self, key: str | Positional[Any], /) -> bool:
+        if isinstance(key, str):
+            return key in self._name_to_positional
+
+        return key in self._positionals
+
     def get_positional(self, name: str, /) -> Positional[Any] | None:
         return self._name_to_positional.get(name)
 
-    def get_positional_by_index(self, index: int, /) -> Positional[Any]:
-        return self._positionals[index]
+    def get_positional_by_index(self, index: int, /) -> Positional[Any] | None:
+        try:
+            return self._positionals[index]
+        except IndexError:
+            return None
+
+    def remove_positional(self, key: str | Positional[Any], /) -> Positional[Any]:
+        if isinstance(key, str):
+            positional = self.get_positional(key)
+            if not positional:
+                exc_message = f"positional {key!r} not found"
+                raise ValueError(exc_message)
+        else:
+            positional = key
+
+        try:
+            self._positionals.remove(positional)
+        except ValueError:
+            exc_message = f"positional not found: {positional}"
+            raise ValueError(exc_message) from None
+
+        return positional
 
     def parse_input(self, data: str | Iterable[str], /) -> Namespace:
         from cliargparse.lexer import lex  # noqa: PLC0415

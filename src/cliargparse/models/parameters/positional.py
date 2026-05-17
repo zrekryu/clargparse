@@ -51,7 +51,7 @@ class Positional[T](Parameter):
             nargs = 1
 
         if isinstance(nargs, int) and nargs <= 0:
-            exc_message = "nargs cannot be zero or negative"
+            exc_message = f"expected positional nargs > 0, got {nargs}"
             raise ValueError(exc_message)
 
         return cls(

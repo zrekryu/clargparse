@@ -1,4 +1,4 @@
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -52,3 +52,6 @@ class MutexOptionGroup:
         self.add_option(option)
 
         return option
+
+    def __iter__(self) -> Iterator[Option[Any]]:
+        return iter(self._options)

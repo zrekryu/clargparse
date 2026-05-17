@@ -16,3 +16,4 @@ build/
 .dmypy.json
 test*.py
 ruff.sh
+src.zip
