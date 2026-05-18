@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import KW_ONLY, dataclass
 from typing import TYPE_CHECKING, assert_never
 
+from cliargparse import numargs
 from cliargparse.actions import (
     append_present_action,
     count_presence_action,
@@ -11,7 +12,7 @@ from cliargparse.actions import (
     store_true_action,
     store_value_action,
 )
-from cliargparse.enums import NArgs, OptionPrefix
+from cliargparse.enums import OptionPrefix
 
 from .parameter import Parameter
 
@@ -35,7 +36,7 @@ class Option[T](Parameter):
     store_name: str
 
     action: Action[Option[T]]
-    nargs: int | NArgs
+    num_args: int | numargs.BaseNumArgs
 
     default: T | None = None
     present: T | None = None
@@ -82,13 +83,13 @@ class Option[T](Parameter):
 
     @property
     def takes_arguments(self) -> bool:
-        match self.nargs:
-            case NArgs.OPTIONAL | NArgs.ZERO_OR_MORE | NArgs.ONE_OR_MORE:
+        match self.num_args:
+            case numargs.BaseNumArgs():
                 return True
             case int():
-                return self.nargs > 0
+                return self.num_args > 0
             case _:
-                assert_never(self.nargs)
+                assert_never(self.num_args)
 
     @classmethod
     def create(
@@ -100,7 +101,7 @@ class Option[T](Parameter):
         short_aliases: str | Sequence[str] | None = None,
         store_name: str | None = None,
         action: Action[Option[T]] | None = None,
-        nargs: int | NArgs | None = None,
+        num_args: int | numargs.BaseNumArgs | None = None,
         present: T | None = None,
         default: T | None = None,
         type_converter: Callable[[str], T] | None = None,
@@ -132,7 +133,7 @@ class Option[T](Parameter):
         if action is None:
             action = store_value_action
 
-        if nargs is None:
+        if num_args is None:
             if action in (
                 store_present_action,
                 store_true_action,
@@ -140,17 +141,19 @@ class Option[T](Parameter):
                 append_present_action,
                 count_presence_action,
             ):
-                nargs = 0
+                num_args = 0
             else:
-                nargs = 1
+                num_args = 1
 
         if action in (store_present_action, append_present_action) and present is None:
             action_name = getattr(action, "__name__", repr(action))
             exc_message = f"Missing present argument for action {action_name!r}"
             raise ValueError(exc_message)
 
-        if present is not None and nargs != NArgs.OPTIONAL:
-            exc_message = f"present argument must be used with {NArgs.OPTIONAL!r}, got {nargs!r}"
+        if present is not None and num_args != numargs.OPTIONAL:
+            exc_message = (
+                f"present argument must be used with {numargs.OPTIONAL!r}, got {num_args!r}"
+            )
             raise ValueError(exc_message)
 
         return cls(
@@ -160,7 +163,7 @@ class Option[T](Parameter):
             short_aliases=short_aliases,
             store_name=store_name,
             action=action,
-            nargs=nargs,
+            num_args=num_args,
             present=present,
             default=default,
             type_converter=type_converter or str,

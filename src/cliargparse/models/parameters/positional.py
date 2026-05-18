@@ -4,7 +4,6 @@ from dataclasses import KW_ONLY, dataclass
 from typing import TYPE_CHECKING
 
 from cliargparse.actions import store_value_action
-from cliargparse.enums import NArgs
 
 from .parameter import Parameter
 
@@ -12,6 +11,7 @@ from .parameter import Parameter
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from cliargparse import numargs
     from cliargparse.hints import Action
 
 
@@ -22,7 +22,7 @@ class Positional[T](Parameter):
     _: KW_ONLY
 
     action: Action[Positional[T]]
-    nargs: int | NArgs
+    num_args: int | numargs.BaseNumArgs
 
     default: T | None = None
 
@@ -31,7 +31,7 @@ class Positional[T](Parameter):
 
     @property
     def is_required(self) -> bool:
-        return isinstance(self.nargs, int) or self.nargs is NArgs.ONE_OR_MORE
+        return self.default is None
 
     @classmethod
     def create(
@@ -39,7 +39,7 @@ class Positional[T](Parameter):
         name: str,
         *,
         action: Action[Positional[T]] | None = None,
-        nargs: int | NArgs | None = None,
+        num_args: int | numargs.BaseNumArgs | None = None,
         default: T | None = None,
         type_converter: Callable[[str], T] | None = None,
         choices: Sequence[T] | None = None,
@@ -47,17 +47,17 @@ class Positional[T](Parameter):
         if action is None:
             action = store_value_action
 
-        if nargs is None:
-            nargs = 1
+        if num_args is None:
+            num_args = 1
 
-        if isinstance(nargs, int) and nargs <= 0:
-            exc_message = f"expected positional nargs > 0, got {nargs}"
+        if isinstance(num_args, int) and num_args <= 0:
+            exc_message = f"expected positional num_args > 0, got {num_args}"
             raise ValueError(exc_message)
 
         return cls(
             name=name,
             action=action,
-            nargs=nargs,
+            num_args=num_args,
             default=default,
             type_converter=type_converter or str,
             choices=tuple(choices or ()),

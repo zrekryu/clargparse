@@ -1,10 +1,15 @@
-from collections.abc import Callable, Iterator, Sequence
-from dataclasses import dataclass, field
-from typing import Any
+from __future__ import annotations
 
-from cliargparse.hints import Action
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from .parameters import Command, Option
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator, Sequence
+
+    from cliargparse.hints import Action
 
 
 @dataclass(frozen=True)
@@ -43,7 +48,7 @@ class MutexOptionGroup:
             short_aliases=short_aliases,
             store_name=store_name,
             action=action,
-            nargs=0,
+            num_args=0,
             present=present,
             default=default,
             type_converter=type_converter,

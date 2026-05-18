@@ -73,7 +73,7 @@ def append_value_action(
     return current_value
 
 
-def extend_value_action(
+def extend_values_action(
     parameter: Option[Any] | Positional[Any],  # noqa: ARG001
     values: Sequence[Any],
     *,

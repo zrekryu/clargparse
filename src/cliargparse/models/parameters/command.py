@@ -4,7 +4,8 @@ from pathlib import Path
 import sys
 from typing import TYPE_CHECKING, Any
 
-from cliargparse.enums import NArgs, ParseMode
+from cliargparse import numargs
+from cliargparse.enums import ParseMode
 from cliargparse.exceptions import ParseModeError
 
 
@@ -69,7 +70,7 @@ class Command(Parameter):
         return tuple(
             option
             for option in self.options
-            if isinstance(option.nargs, NArgs) and option.nargs.is_variadic
+            if isinstance(option.num_args, numargs.BaseNumArgs) and option.num_args.is_variadic
         )
 
     @property
@@ -167,7 +168,7 @@ class Command(Parameter):
         short_aliases: str | Sequence[str] | None = None,
         store_name: str | None = None,
         action: Action[Option[T]] | None = None,
-        nargs: int | NArgs | None = None,
+        num_args: int | numargs.BaseNumArgs | None = None,
         present: Any | None = None,
         default: Any | None = None,
         type_converter: Callable[[str], T] | None = None,
@@ -181,7 +182,7 @@ class Command(Parameter):
             short_aliases=short_aliases,
             store_name=store_name,
             action=action,
-            nargs=nargs,
+            num_args=num_args,
             present=present,
             default=default,
             type_converter=type_converter,
@@ -274,7 +275,7 @@ class Command(Parameter):
             )
             raise ValueError(exc_message)
 
-        if isinstance(positional.nargs, NArgs) and positional.nargs.is_variadic:
+        if isinstance(positional.num_args, numargs.BaseNumArgs) and positional.num_args.is_variadic:
             self._variadic_positional = positional
 
         self._name_to_positional[positional.name] = positional
@@ -285,7 +286,7 @@ class Command(Parameter):
         name: str,
         *,
         action: Action[Positional[T]] | None = None,
-        nargs: int | NArgs | None = None,
+        num_args: int | numargs.BaseNumArgs | None = None,
         default: Any | None = None,
         type_converter: Callable[[str], T] | None = None,
         choices: Sequence[T] | None = None,
@@ -293,7 +294,7 @@ class Command(Parameter):
         positional = Positional[T].create(
             name=name,
             action=action,
-            nargs=nargs,
+            num_args=num_args,
             default=default,
             type_converter=type_converter,
             choices=choices,

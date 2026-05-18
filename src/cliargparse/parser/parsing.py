@@ -1,7 +1,9 @@
-from collections.abc import Callable, Iterable
-from typing import Any, assert_never
+from __future__ import annotations
 
-from cliargparse.enums import NArgs, OptionPrefix, ParseMode
+from typing import TYPE_CHECKING, Any, assert_never
+
+from cliargparse import numargs
+from cliargparse.enums import OptionPrefix, ParseMode
 from cliargparse.exceptions import (
     InvalidOptionChoiceError,
     InvalidPositionalChoiceError,
@@ -20,18 +22,23 @@ from cliargparse.exceptions import (
     UnknownShortOptionError,
     UnknownShortOptionInGroupError,
 )
-from cliargparse.hints import LexerToken
 from cliargparse.lexer.tokens import (
     ArgumentToken,
     OptionToken,
     ShortOptionGroupToken,
 )
-from cliargparse.models import MutexOptionGroup
-from cliargparse.models.parameters import Command, Option, Positional
 
 from .nodes import CommandNode, OptionNode, PositionalNode
 from .parse_context import ParseContext
 from .token_stream import TokenStream
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+
+    from cliargparse.hints import LexerToken
+    from cliargparse.models import MutexOptionGroup
+    from cliargparse.models.parameters import Command, Option, Positional
 
 
 def parse(tokens: Iterable[LexerToken], command: Command) -> CommandNode:
@@ -158,7 +165,7 @@ def _consume_and_validate_option_arguments(
             values = (option.type_converter(token.value),)
         else:
             values = _consume_arguments(
-                option.nargs,
+                option.num_args,
                 token_stream,
                 type_converter=option.type_converter,
             )
@@ -168,8 +175,8 @@ def _consume_and_validate_option_arguments(
     if not values and (default := option.default):
         values = (default,)
 
-    if not _is_valid_nargs_count(option.nargs, len(values)):
-        raise MissingOptionArgumentsError(token.specifier, option.nargs, len(values))
+    if not _is_valid_num_args_count(option.num_args, len(values)):
+        raise MissingOptionArgumentsError(token.specifier, option.num_args, len(values))
 
     if option.choices:
         for value in values:
@@ -209,7 +216,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
         raise UnexpectedPositionalArgumentError(token.argument) from None
 
     arguments = _consume_arguments(
-        positional.nargs,
+        positional.num_args,
         context.token_stream,
         type_converter=positional.type_converter,
     )
@@ -223,8 +230,8 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
 
     values = positional.action(positional, arguments, current_value=current_value)
 
-    if not _is_valid_nargs_count(positional.nargs, len(values)):
-        raise MissingPositionalArgumentsError(positional.name, positional.nargs, len(values))
+    if not _is_valid_num_args_count(positional.num_args, len(values)):
+        raise MissingPositionalArgumentsError(positional.name, positional.num_args, len(values))
 
     if positional.choices:
         for value in values:
@@ -241,7 +248,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
 
 
 def _consume_arguments(
-    nargs: int | NArgs,
+    num_args: int | numargs.BaseNumArgs,
     token_stream: TokenStream,
     *,
     type_converter: Callable[[str], Any] = str,
@@ -251,17 +258,17 @@ def _consume_arguments(
         if not isinstance(token, ArgumentToken):
             break
 
-        match nargs:
-            case NArgs.OPTIONAL:
-                if values:
+        count = len(values)
+
+        match num_args:
+            case numargs.BaseNumArgs():
+                if num_args.must_stop_consumption(count):
                     break
-            case NArgs.ZERO_OR_MORE | NArgs.ONE_OR_MORE:
-                pass
             case int():
-                if len(values) >= nargs:
+                if count >= num_args:
                     break
             case _:
-                assert_never(nargs)
+                assert_never(num_args)
 
         values.append(type_converter(token.argument))
 
@@ -270,11 +277,14 @@ def _consume_arguments(
     return tuple(values)
 
 
-def _is_valid_nargs_count(nargs: int | NArgs, count: int) -> bool:
-    if isinstance(nargs, NArgs):
-        return nargs.is_valid_count(count)
-
-    return count >= nargs
+def _is_valid_num_args_count(num_args: int | numargs.BaseNumArgs, count: int) -> bool:
+    match num_args:
+        case numargs.BaseNumArgs():
+            return num_args.is_valid(count)
+        case int():
+            return count >= num_args
+        case _:
+            assert_never(num_args)
 
 
 def _validate_command(node: CommandNode) -> None:

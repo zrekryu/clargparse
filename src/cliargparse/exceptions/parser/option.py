@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, assert_never
 
-from cliargparse.enums import NArgs, OptionPrefix
+from cliargparse import numargs
+from cliargparse.enums import OptionPrefix
 
 from .base import ParserError
 
@@ -84,23 +85,25 @@ class MissingOptionArgumentsError(ParserError):
     def __init__(
         self,
         specifier: str,
-        nargs: int | NArgs,
-        received_nargs: int,
+        num_args: int | numargs.BaseNumArgs,
+        received_num_args: int,
     ) -> None:
-        super().__init__(specifier, nargs, received_nargs)
+        super().__init__(specifier, num_args, received_num_args)
 
         self.specifier = specifier
-        self.nargs = nargs
-        self.received_nargs = received_nargs
+        self.num_args = num_args
+        self.received_num_args = received_num_args
 
     def __str__(self) -> str:
-        s = "s" if isinstance(self.nargs, int) and self.nargs != 1 else ""
+        match self.num_args:
+            case numargs.BaseNumArgs():
+                expected = self.num_args.cardinality_repr
+            case int():
+                expected = f"argument{'s' if self.num_args != 1 else ''}"
+            case _:
+                assert_never(self.num_args)
 
-        return (
-            f"option {self.specifier!r} expected "
-            f"{self.nargs} argument{s}, "
-            f"got {self.received_nargs}"
-        )
+        return f"option {self.specifier!r} expected {expected}, got {self.received_num_args}"
 
 
 class InvalidOptionChoiceError(ParserError):

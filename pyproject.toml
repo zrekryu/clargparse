@@ -31,7 +31,6 @@ ignore = [
     "PLR0913",  # too-many-arguments,
 ]
 select = ["ALL"]
-extend-select = ["FA"]
 
 
 [tool.ruff.lint.isort]

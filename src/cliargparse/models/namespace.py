@@ -8,10 +8,6 @@ if TYPE_CHECKING:
 
 
 class Namespace(dict[str, Any]):
-    def __repr__(self) -> str:
-        items_repr = ", ".join(f"{key}={value!r}" for key, value in self.items())
-        return f"{type(self).__name__}({items_repr})"
-
     @classmethod
     def from_node(cls, node: CommandNode) -> Namespace:
         namespace = cls()
@@ -26,3 +22,7 @@ class Namespace(dict[str, Any]):
             namespace[positional.name] = positional_node.values
 
         return namespace
+
+    def __repr__(self) -> str:
+        items_repr = ", ".join(f"{key}={value!r}" for key, value in self.items())
+        return f"{type(self).__name__}({items_repr})"
