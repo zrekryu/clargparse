@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .parsed_values import ParsedValues
 
@@ -43,4 +43,4 @@ class ParsedCommandInput:
         return ParsedCommandInput(node, value_to_node, values)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}(node={self.node}, values={self._values})"
+        return f"{type(self).__name__}(node={self.node}, values={self.values})"
