@@ -18,9 +18,7 @@ class ParsedCommandInput:
     ) -> None:
         self.node = node
         self.value_to_node = value_to_node
-        self._values = values
-
-        self.values = self._values.to_proxy()
+        self.values = values
 
     @classmethod
     def from_node(cls, node: CommandNode) -> ParsedCommandInput:
