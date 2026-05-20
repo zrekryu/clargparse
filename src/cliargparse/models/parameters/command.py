@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from cliargparse.hints import Action
     from cliargparse.models.mutex_option_group import MutexOptionGroup
 
-from cliargparse.models.namespace import Namespace
+from cliargparse.models.parsed_command_input import ParsedCommandInput
 
 from .option import Option
 from .parameter import Parameter
@@ -335,7 +335,7 @@ class Command(Parameter):
 
         return positional
 
-    def parse_input(self, data: str | Iterable[str], /) -> Namespace:
+    def parse_input(self, data: str | Iterable[str], /) -> ParsedCommandInput:
         from cliargparse.lexer import lex  # noqa: PLC0415
         from cliargparse.parser import parse  # noqa: PLC0415
 
@@ -350,7 +350,7 @@ class Command(Parameter):
         tokens = lex(arguments)
 
         node = parse(tokens, self)
-        return Namespace.from_node(node)
+        return ParsedCommandInput.from_node(node)
 
     def __str__(self) -> str:
         return self.name
@@ -362,11 +362,11 @@ class Command(Parameter):
             f"aliases={self.aliases}, "
             f"parse_mode={self.parse_mode!r}, "
             f"subcommand_required={self.subcommand_required}, "
-            f"options={self.options}, "
+            f"options={self._options}, "
             f"variadic_options={self.variadic_options}, "
-            f"mutex_option_groups={self.mutex_option_groups}, "
-            f"subcommands={self.subcommands}, "
-            f"positionals={self.positionals}, "
-            f"variadic_positional={self.variadic_positional}"
+            f"mutex_option_groups={self._mutex_option_groups}, "
+            f"subcommands={self._subcommands}, "
+            f"positionals={self._positionals}, "
+            f"variadic_positional={self._variadic_positional}"
             ")"
         )

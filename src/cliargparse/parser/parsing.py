@@ -172,9 +172,6 @@ def _consume_and_validate_option_arguments(
     else:
         values = ()
 
-    if not values and (default := option.default):
-        values = (default,)
-
     if not _is_valid_num_args_count(option.num_args, len(values)):
         raise MissingOptionArgumentsError(token.specifier, option.num_args, len(values))
 
@@ -220,9 +217,6 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
         context.token_stream,
         type_converter=positional.type_converter,
     )
-
-    if not arguments and (default := positional.default):
-        arguments = (default,)
 
     current_value: Any | None = None
     if current_positional := context.node.positionals.get(positional):

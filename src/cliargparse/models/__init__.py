@@ -1,5 +1,5 @@
 from .mutex_option_group import MutexOptionGroup
-from .namespace import Namespace
+from .parsed_command_input import ParsedCommandInput
 
 
-__all__ = ["MutexOptionGroup", "Namespace"]
+__all__ = ["MutexOptionGroup", "ParsedCommandInput"]

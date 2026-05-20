@@ -7,7 +7,7 @@ from .base import BaseNumArgs
 @dataclass(frozen=True)
 class Optional(BaseNumArgs):
     @property
-    def cardinality_repr(self) -> str:
+    def expected_cardinality_repr(self) -> str:
         return "0 or 1 argument"
 
     @property

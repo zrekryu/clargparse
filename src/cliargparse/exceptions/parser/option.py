@@ -97,7 +97,7 @@ class MissingOptionArgumentsError(ParserError):
     def __str__(self) -> str:
         match self.num_args:
             case numargs.BaseNumArgs():
-                expected = self.num_args.cardinality_repr
+                expected = self.num_args.expected_cardinality_repr
             case int():
                 expected = f"argument{'s' if self.num_args != 1 else ''}"
             case _:

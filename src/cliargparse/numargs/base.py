@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class BaseNumArgs(ABC):
     @property
     @abstractmethod
-    def cardinality_repr(self) -> str: ...
+    def expected_cardinality_repr(self) -> str: ...
 
     @property
     @abstractmethod

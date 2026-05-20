@@ -27,8 +27,8 @@ class Range(BaseNumArgs):
         object.__setattr__(self, "maximum", maximum)
 
     @property
-    def cardinality_repr(self) -> str:
-        return f"{self.minimum} to {self.maximum} arguments"
+    def expected_cardinality_repr(self) -> str:
+        return f"{self.minimum}-{self.maximum} arguments"
 
     @property
     def is_variadic(self) -> bool:

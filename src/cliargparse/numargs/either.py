@@ -18,7 +18,7 @@ class Either(BaseNumArgs):
         object.__setattr__(self, "counts", tuple(sorted(counts)))
 
     @property
-    def cardinality_repr(self) -> str:
+    def expected_cardinality_repr(self) -> str:
         counts = ", ".join(map(str, self.counts[:-1])) + f" or {self.counts[-1]}"
         return f"either {counts} arguments"
 

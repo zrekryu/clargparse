@@ -152,7 +152,8 @@ class Option[T](Parameter):
 
         if present is not None and num_args != numargs.OPTIONAL:
             exc_message = (
-                f"present argument must be used with {numargs.OPTIONAL!r}, got {num_args!r}"
+                f"present argument must be used with num args {numargs.OPTIONAL!r}, "
+                f"got {num_args!r}"
             )
             raise ValueError(exc_message)
 
