@@ -1,7 +1,11 @@
-from dataclasses import dataclass
-from typing import Any
+from __future__ import annotations
 
-from cliargparse.models.parameters import Positional
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from cliargparse.models.parameters import Positional
 
 
 @dataclass(frozen=True)

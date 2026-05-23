@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .token import Token
-
 
 @dataclass(frozen=True)
-class ArgumentToken(Token):
-    pass
+class Token:
+    value: str
+
+    def __str__(self) -> str:
+        return self.value

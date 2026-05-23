@@ -1,7 +1,12 @@
-from dataclasses import dataclass
+from __future__ import annotations
 
-from .nodes import CommandNode
-from .token_stream import TokenStream
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from .nodes import CommandNode
+    from .token_stream import TokenStream
 
 
 @dataclass

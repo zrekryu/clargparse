@@ -20,9 +20,16 @@ from .parser import (
     UnknownShortOptionError,
     UnknownShortOptionInGroupError,
 )
+from .tokenizer import (
+    InvalidEscapeSequenceError,
+    TokenizerError,
+    UnclosedQuoteError,
+    UnterminatedEscapeSequenceError,
+)
 
 
 __all__ = [
+    "InvalidEscapeSequenceError",
     "InvalidOptionChoiceError",
     "InvalidPositionalChoiceError",
     "LexerError",
@@ -40,10 +47,13 @@ __all__ = [
     "ParserError",
     "ShortOptionNameTooLongError",
     "SubcommandRequiredError",
+    "TokenizerError",
+    "UnclosedQuoteError",
     "UnexpectedPositionalArgumentError",
     "UnknownCommandError",
     "UnknownLongOptionError",
     "UnknownOptionError",
     "UnknownShortOptionError",
     "UnknownShortOptionInGroupError",
+    "UnterminatedEscapeSequenceError",
 ]

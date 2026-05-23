@@ -1,11 +1,17 @@
-from collections.abc import Generator, Iterable
-from typing import Final
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Final
 
 from cliargparse.enums import OptionPrefix
 from cliargparse.exceptions import MissingOptionNameError, ShortOptionNameTooLongError
-from cliargparse.hints import LexerToken
 
 from .tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator, Iterable
+
+    from cliargparse.hints import LexerToken
 
 
 END_OF_OPTIONS: Final[str] = "--"
@@ -16,26 +22,43 @@ def lex(arguments: Iterable[str]) -> Generator[LexerToken]:
     end_of_options = False
 
     for argument in arguments:
-        if argument.startswith(OptionPrefix.LONG):
-            if argument[len(OptionPrefix.LONG) :].isdigit():
+        if not end_of_options:
+            if argument == END_OF_OPTIONS:
+                end_of_options = True
+            elif argument == OptionPrefix.SHORT:
                 yield ArgumentToken(argument)
-                continue
-            elif not end_of_options:
-                if argument == END_OF_OPTIONS:
-                    end_of_options = True
-                    continue
+            elif argument.startswith(OptionPrefix.LONG):
+                yield _lex_long_option_prefix(argument)
+            elif argument.startswith(OptionPrefix.SHORT):
+                _lex_short_option_prefix(argument)
+        else:
+            yield ArgumentToken(argument)
 
-                yield _lex_long_option(argument)
-                continue
-        elif argument.startswith(OptionPrefix.SHORT):
-            if argument == OptionPrefix.SHORT or argument[len(OptionPrefix.SHORT) :].isdigit():
-                yield ArgumentToken(argument)
-                continue
-            elif not end_of_options:
-                yield _lex_short_option_or_group(argument)
-                continue
 
-        yield ArgumentToken(argument)
+def _lex_long_option_prefix(argument: str) -> OptionToken | ArgumentToken:
+    prefix_len = len(OptionPrefix.LONG)
+    first_char = argument[prefix_len : prefix_len + 1]
+
+    if first_char.isalpha():
+        return _lex_long_option(argument)
+    if first_char.isdigit():
+        return ArgumentToken(argument)
+
+    exc_message = f"unreachable code reached: {argument}"
+    raise AssertionError(exc_message)
+
+
+def _lex_short_option_prefix(argument: str) -> OptionToken | ShortOptionGroupToken | ArgumentToken:
+    prefix_len = len(OptionPrefix.SHORT)
+    first_char = argument[prefix_len : prefix_len + 1]
+
+    if first_char.isalpha():
+        return _lex_short_option_or_group(argument)
+    if first_char.isdigit():
+        return ArgumentToken(argument)
+
+    exc_message = f"unreachable code reached: {argument}"
+    raise AssertionError(exc_message)
 
 
 def _lex_long_option(argument: str) -> OptionToken:

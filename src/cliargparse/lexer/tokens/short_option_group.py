@@ -1,7 +1,13 @@
-from dataclasses import dataclass
+from __future__ import annotations
 
-from .option import OptionToken
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 from .token import Token
+
+
+if TYPE_CHECKING:
+    from .option import OptionToken
 
 
 @dataclass(frozen=True)
