@@ -82,7 +82,7 @@ def _handle_unquoted(char: str, context: TokenizeContext) -> None:
 
         context.source_index += 1
     elif char == BACKSLASH:
-        next_char = _peak_source_char(context.source, context.source_index)
+        next_char = _peek_source_char(context.source, context.source_index)
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
 
@@ -112,7 +112,7 @@ def _handle_double_quote(char: str, context: TokenizeContext) -> None:
         context.state = TokenizerState.UNQUOTED
         context.source_index += 1
     elif char == BACKSLASH:
-        next_char = _peak_source_char(context.source, context.source_index)
+        next_char = _peek_source_char(context.source, context.source_index)
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
 
@@ -126,7 +126,7 @@ def _handle_double_quote(char: str, context: TokenizeContext) -> None:
         context.source_index += 1
 
 
-def _peak_source_char(source: str, source_index: int) -> str | None:
+def _peek_source_char(source: str, source_index: int) -> str | None:
     if source_index + 1 < len(source):
         return source[source_index + 1]
 
