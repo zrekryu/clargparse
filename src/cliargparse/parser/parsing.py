@@ -27,6 +27,7 @@ from cliargparse.lexer.tokens import (
     OptionToken,
     ShortOptionGroupToken,
 )
+from cliargparse.tokenizer.tokens import TokenizerToken
 
 from .nodes import CommandNode, OptionNode, PositionalNode
 from .parse_context import ParseContext
@@ -36,19 +37,18 @@ from .token_stream import TokenStream
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from cliargparse.hints import LexerToken
+    from cliargparse.hints import LexerTokenUnion
     from cliargparse.models import MutexOptionGroup
     from cliargparse.models.parameters import Command, Option, Positional
 
 
-def parse(tokens: Iterable[LexerToken], command: Command) -> CommandNode:
-    node = CommandNode(command)
+def parse(tokens: Iterable[LexerTokenUnion], command: Command) -> CommandNode:
+    root_command_token = ArgumentToken(TokenizerToken(command.name))
+    node = CommandNode(root_command_token, command)
+
     token_stream = TokenStream(tokens)
 
-    context = ParseContext(
-        node=node,
-        token_stream=token_stream,
-    )
+    context = ParseContext(node, token_stream)
 
     while (token := token_stream.peek()) is not None:
         match token:
@@ -100,7 +100,7 @@ def _parse_long_option(token: OptionToken, context: ParseContext) -> OptionNode:
 
     values = option.action(option, arguments, current_value=current_value)
 
-    return OptionNode(token.specifier, option, values)
+    return OptionNode(token, option, values)
 
 
 def _handle_short_option(token: OptionToken, context: ParseContext) -> None:
@@ -121,7 +121,7 @@ def _parse_short_option(token: OptionToken, context: ParseContext) -> OptionNode
 
     values = option.action(option, arguments, current_value=current_value)
 
-    return OptionNode(token.specifier, option, values)
+    return OptionNode(token, option, values)
 
 
 def _handle_short_option_group(token: ShortOptionGroupToken, context: ParseContext) -> None:
@@ -148,7 +148,7 @@ def _parse_grouped_short_option(
 
     values = option.action(option, (), current_value=current_value)
 
-    return OptionNode(token.specifier, option, values)
+    return OptionNode(token, option, values)
 
 
 def _consume_and_validate_option_arguments(
@@ -190,7 +190,7 @@ def _consume_and_validate_option_arguments(
 def _handle_command(token: ArgumentToken, context: ParseContext) -> None:
     command = _parse_command(token, context)
 
-    context.node.subcommand = CommandNode(command)
+    context.node.subcommand = CommandNode(token, command)
     context.node = context.node.subcommand
 
 
@@ -238,7 +238,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
 
     context.positional_index += 1
 
-    return PositionalNode(positional, values)
+    return PositionalNode(token, positional, values)
 
 
 def _consume_arguments(
@@ -316,7 +316,9 @@ def _validate_mutex_option_groups(
 ) -> None:
     for group in mutex_option_groups:
         found_specifiers = tuple(
-            node.specifier for parameter, node in option_nodes.items() if parameter in group.options
+            node.token.specifier
+            for parameter, node in option_nodes.items()
+            if parameter in group.options
         )
         if len(found_specifiers) > 1:
             raise MutexOptionCannotCoexistError(found_specifiers[0], found_specifiers[1:])

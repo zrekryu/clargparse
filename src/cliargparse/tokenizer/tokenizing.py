@@ -10,7 +10,7 @@ from cliargparse.exceptions import (
 )
 
 from .tokenize_context import TokenizeContext
-from .tokens import Token
+from .tokens import TokenizerToken
 
 
 SINGLE_QUOTE: Final = "'"
@@ -20,7 +20,7 @@ QUOTES: Final = SINGLE_QUOTE + DOUBLE_QUOTE
 BACKSLASH: Final = "\\"
 
 
-def tokenize(source: str) -> list[Token]:
+def tokenize(source: str) -> list[TokenizerToken]:
     context = TokenizeContext(source)
 
     while context.source_index < len(context.source):
@@ -51,10 +51,10 @@ def tokenize(source: str) -> list[Token]:
     return context.tokens
 
 
-def _flush_buffer(buffer: list[str], tokens: list[Token]) -> None:
+def _flush_buffer(buffer: list[str], tokens: list[TokenizerToken]) -> None:
     value = "".join(buffer)
 
-    token = Token(value)
+    token = TokenizerToken(value)
     tokens.append(token)
 
     buffer.clear()
@@ -75,14 +75,10 @@ def _handle_unquoted(char: str, context: TokenizeContext) -> None:
 
         context.source_index += 1
     elif char == BACKSLASH:
-        next_char = (
-            context.source[context.source_index + 1]
-            if context.source_index + 1 < len(context.source)
-            else None
-        )
-
+        next_char = _peak_source_char(context.source, context.source_index)
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
+
         if next_char in QUOTES or next_char == BACKSLASH:
             context.buffer.append(next_char)
             context.source_index += 2
@@ -109,15 +105,11 @@ def _handle_double_quote(char: str, context: TokenizeContext) -> None:
         context.state = TokenizerState.UNQUOTED
         context.source_index += 1
     elif char == BACKSLASH:
-        next_char = (
-            context.source[context.source_index + 1]
-            if context.source_index + 1 < len(context.source)
-            else None
-        )
-
+        next_char = _peak_source_char(context.source, context.source_index)
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
-        if next_char in (SINGLE_QUOTE, BACKSLASH):
+
+        if next_char in QUOTES or next_char == BACKSLASH:
             context.buffer.append(next_char)
             context.source_index += 2
         else:
@@ -125,3 +117,10 @@ def _handle_double_quote(char: str, context: TokenizeContext) -> None:
     else:
         context.buffer.append(char)
         context.source_index += 1
+
+
+def _peak_source_char(source: str, source_index: int) -> str | None:
+    if source_index + 1 < len(source):
+        return source[source_index + 1]
+
+    return None

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from cliargparse.enums import TokenizerState
 
-from .tokens import Token
+from .tokens import TokenizerToken
 
 
 @dataclass
@@ -16,4 +16,4 @@ class TokenizeContext:
     state: TokenizerState = TokenizerState.UNQUOTED
 
     buffer: list[str] = field(default_factory=list[str])
-    tokens: list[Token] = field(default_factory=list[Token])
+    tokens: list[TokenizerToken] = field(default_factory=list[TokenizerToken])

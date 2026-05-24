@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from cliargparse.tokenizer.tokens import TokenizerToken
 
 
 @dataclass(frozen=True)
-class Token:
-    argument: str
+class LexerToken:
+    token: TokenizerToken
 
-    def __str__(self) -> str:
-        return self.argument
+    @property
+    def argument(self) -> str:
+        return self.token.argument

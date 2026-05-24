@@ -11,88 +11,92 @@ from .tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
-    from cliargparse.hints import LexerToken
+    from cliargparse.hints import LexerTokenUnion
+    from cliargparse.tokenizer.tokens import TokenizerToken
 
 
 END_OF_OPTIONS: Final[str] = "--"
 OPTION_VALUE_DELIMITER: Final[str] = "="
 
 
-def lex(arguments: Iterable[str]) -> Generator[LexerToken]:
+def lex(tokens: Iterable[TokenizerToken]) -> Generator[LexerTokenUnion]:
     end_of_options = False
 
-    for argument in arguments:
+    for token in tokens:
+        argument = token.argument
         if not end_of_options:
             if argument == END_OF_OPTIONS:
                 end_of_options = True
             elif argument == OptionPrefix.SHORT:
-                yield ArgumentToken(argument)
+                yield ArgumentToken(token)
             elif argument.startswith(OptionPrefix.LONG):
-                yield _lex_long_option_prefix(argument)
+                yield _lex_long_option_prefix(token)
             elif argument.startswith(OptionPrefix.SHORT):
-                _lex_short_option_prefix(argument)
+                _lex_short_option_prefix(token)
         else:
-            yield ArgumentToken(argument)
+            yield ArgumentToken(token)
 
 
-def _lex_long_option_prefix(argument: str) -> OptionToken | ArgumentToken:
+def _lex_long_option_prefix(token: TokenizerToken) -> OptionToken | ArgumentToken:
     prefix_len = len(OptionPrefix.LONG)
-    first_char = argument[prefix_len : prefix_len + 1]
+    first_char = token.argument[prefix_len : prefix_len + 1]
 
     if first_char.isalpha():
-        return _lex_long_option(argument)
+        return _lex_long_option(token)
     if first_char.isdigit():
-        return ArgumentToken(argument)
+        return ArgumentToken(token)
 
-    exc_message = f"unreachable code reached: {argument}"
+    exc_message = f"unreachable code reached: {token}"
     raise AssertionError(exc_message)
 
 
-def _lex_short_option_prefix(argument: str) -> OptionToken | ShortOptionGroupToken | ArgumentToken:
+def _lex_short_option_prefix(
+    token: TokenizerToken,
+) -> OptionToken | ShortOptionGroupToken | ArgumentToken:
     prefix_len = len(OptionPrefix.SHORT)
-    first_char = argument[prefix_len : prefix_len + 1]
+    first_char = token.argument[prefix_len : prefix_len + 1]
 
     if first_char.isalpha():
-        return _lex_short_option_or_group(argument)
+        return _lex_short_option_or_group(token)
     if first_char.isdigit():
-        return ArgumentToken(argument)
+        return ArgumentToken(token)
 
-    exc_message = f"unreachable code reached: {argument}"
+    exc_message = f"unreachable code reached: {token}"
     raise AssertionError(exc_message)
 
 
-def _lex_long_option(argument: str) -> OptionToken:
+def _lex_long_option(token: TokenizerToken) -> OptionToken:
     value: str | None
-    name, sep, value = argument.removeprefix(OptionPrefix.LONG).partition(
+    name, sep, value = token.argument.removeprefix(OptionPrefix.LONG).partition(
         OPTION_VALUE_DELIMITER,
     )
 
     if not name:
-        raise MissingOptionNameError(argument)
+        raise MissingOptionNameError(token.argument)
 
     if not sep:
         value = None
 
     return OptionToken(
-        argument=argument,
+        token=token,
         prefix=OptionPrefix.LONG,
         name=name,
         value=value,
     )
 
 
-def _lex_short_option_or_group(argument: str) -> OptionToken | ShortOptionGroupToken:
-    unprefixed_argument = argument.removeprefix(OptionPrefix.SHORT)
+def _lex_short_option_or_group(token: TokenizerToken) -> OptionToken | ShortOptionGroupToken:
+    unprefixed_argument = token.argument.removeprefix(OptionPrefix.SHORT)
     if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_VALUE_DELIMITER:
         return ShortOptionGroupToken(
-            argument,
-            tuple(OptionToken(name, OptionPrefix.SHORT, name) for name in unprefixed_argument),
+            token,
+            tuple(OptionToken(token, OptionPrefix.SHORT, name) for name in unprefixed_argument),
         )
 
-    return _build_short_option(argument, unprefixed_argument)
+    return _build_short_option(token, unprefixed_argument)
 
 
-def _build_short_option(argument: str, unprefixed_argument: str) -> OptionToken:
+def _build_short_option(token: TokenizerToken, unprefixed_argument: str) -> OptionToken:
     value: str | None
     name, sep, value = unprefixed_argument.partition(OPTION_VALUE_DELIMITER)
 
@@ -103,7 +107,7 @@ def _build_short_option(argument: str, unprefixed_argument: str) -> OptionToken:
         value = None
 
     return OptionToken(
-        argument=argument,
+        token=token,
         prefix=OptionPrefix.SHORT,
         name=name,
         value=value,

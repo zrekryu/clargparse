@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .token import Token
+from .token import LexerToken
 
 
 @dataclass(frozen=True)
-class ArgumentToken(Token):
+class ArgumentToken(LexerToken):
     pass

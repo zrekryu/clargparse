@@ -6,16 +6,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from cliargparse.hints import LexerToken
+    from cliargparse.hints import LexerTokenUnion
 
 
 class TokenStream:
-    def __init__(self, tokens: Iterable[LexerToken]) -> None:
+    def __init__(self, tokens: Iterable[LexerTokenUnion]) -> None:
         self._iter = iter(tokens)
 
-        self._buffer: LexerToken | None = None
+        self._buffer: LexerTokenUnion | None = None
 
-    def peek(self) -> LexerToken | None:
+    def peek(self) -> LexerTokenUnion | None:
         if self._buffer is None:
             try:
                 self._buffer = next(self._iter)
@@ -24,7 +24,7 @@ class TokenStream:
 
         return self._buffer
 
-    def consume(self) -> LexerToken | None:
+    def consume(self) -> LexerTokenUnion | None:
         token = self.peek()
         self._buffer = None
         return token
@@ -32,7 +32,7 @@ class TokenStream:
     def __iter__(self) -> TokenStream:
         return self
 
-    def __next__(self) -> LexerToken:
+    def __next__(self) -> LexerTokenUnion:
         token = self.peek()
         if token is None:
             raise StopIteration

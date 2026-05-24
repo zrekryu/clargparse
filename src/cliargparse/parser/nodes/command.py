@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import KW_ONLY, dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cliargparse.models.parameters import Command, Option, Positional
 
@@ -9,8 +9,13 @@ from .option import OptionNode
 from .positional import PositionalNode
 
 
+if TYPE_CHECKING:
+    from cliargparse.lexer.tokens import ArgumentToken
+
+
 @dataclass
 class CommandNode:
+    token: ArgumentToken
     command: Command
 
     _: KW_ONLY

@@ -4,11 +4,11 @@ from dataclasses import dataclass
 
 from cliargparse.enums import OptionPrefix
 
-from .token import Token
+from .token import LexerToken
 
 
 @dataclass(frozen=True)
-class OptionToken(Token):
+class OptionToken(LexerToken):
     prefix: OptionPrefix
     name: str
     value: str | None = None

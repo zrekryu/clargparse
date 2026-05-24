@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .token import Token
+from .token import LexerToken
 
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class ShortOptionGroupToken(Token):
+class ShortOptionGroupToken(LexerToken):
     options: tuple[OptionToken, ...]
 
     @property

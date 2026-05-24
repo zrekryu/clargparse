@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
+    from cliargparse.lexer.tokens import OptionToken
     from cliargparse.models.parameters import Option
 
 
 @dataclass(frozen=True)
 class OptionNode:
-    specifier: str
+    token: OptionToken
     option: Option[Any]
     values: Any

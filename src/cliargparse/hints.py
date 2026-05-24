@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from .models.parameters import Parameter
 
 
-type LexerToken = OptionToken | ShortOptionGroupToken | ArgumentToken
+type LexerTokenUnion = OptionToken | ShortOptionGroupToken | ArgumentToken
 
 
 class Action[P: Parameter](Protocol):

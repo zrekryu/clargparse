@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from cliargparse.models.mutex_option_group import MutexOptionGroup
 
 from cliargparse.models.parsed_command_input import ParsedCommandInput
+from cliargparse.tokenizer import tokenize
+from cliargparse.tokenizer.tokens import TokenizerToken
 
 from .option import Option
 from .parameter import Parameter
@@ -336,20 +338,20 @@ class Command(Parameter):
         return positional
 
     def parse_input(self, data: str | Iterable[str], /) -> ParsedCommandInput:
+        tokenizer_tokens: list[TokenizerToken]
+        if isinstance(data, str):
+            tokenizer_tokens = tokenize(data)
+        else:
+            tokenizer_tokens = [TokenizerToken(value, start_index=0) for value in data]
+
+        return self.parse_tokenizer_tokens(tokenizer_tokens)
+
+    def parse_tokenizer_tokens(self, tokens: Iterable[TokenizerToken], /) -> ParsedCommandInput:
         from cliargparse.lexer import lex  # noqa: PLC0415
         from cliargparse.parser import parse  # noqa: PLC0415
 
-        arguments: Iterable[str]
-        if isinstance(data, str):
-            import shlex  # noqa: PLC0415
-
-            arguments = shlex.split(data)
-        else:
-            arguments = data
-
-        tokens = lex(arguments)
-
-        node = parse(tokens, self)
+        lexer_tokens = lex(tokens)
+        node = parse(lexer_tokens, self)
         return ParsedCommandInput.from_node(node)
 
     def __str__(self) -> str:
