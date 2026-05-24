@@ -10,6 +10,7 @@ class TokenizerToken:
     _: KW_ONLY
 
     start_index: int | None = None
+    end_index: int | None = None
 
     def __str__(self) -> str:
         return self.argument

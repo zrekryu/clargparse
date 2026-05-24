@@ -24,6 +24,9 @@ def tokenize(source: str) -> list[TokenizerToken]:
     context = TokenizeContext(source)
 
     while context.source_index < len(context.source):
+        if not context.buffer:
+            context.argument_start_index = context.source_index
+
         char = source[context.source_index]
 
         match context.state:
@@ -46,18 +49,21 @@ def tokenize(source: str) -> list[TokenizerToken]:
                 assert_never(context.state)
 
     if context.buffer:
-        _flush_buffer(context.buffer, context.tokens)
+        context.argument_end_index = context.source_index
+        _flush_buffer(context)
 
     return context.tokens
 
 
-def _flush_buffer(buffer: list[str], tokens: list[TokenizerToken]) -> None:
-    value = "".join(buffer)
+def _flush_buffer(context: TokenizeContext) -> None:
+    value = "".join(context.buffer)
 
-    token = TokenizerToken(value)
-    tokens.append(token)
+    token = TokenizerToken(
+        value, start_index=context.argument_start_index, end_index=context.argument_end_index
+    )
+    context.tokens.append(token)
 
-    buffer.clear()
+    context.buffer.clear()
 
 
 def _handle_unquoted(char: str, context: TokenizeContext) -> None:
@@ -71,7 +77,8 @@ def _handle_unquoted(char: str, context: TokenizeContext) -> None:
         context.source_index += 1
     elif char.isspace():
         if context.buffer:
-            _flush_buffer(context.buffer, context.tokens)
+            context.argument_end_index = context.source_index
+            _flush_buffer(context)
 
         context.source_index += 1
     elif char == BACKSLASH:
