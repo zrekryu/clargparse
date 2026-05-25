@@ -15,7 +15,6 @@ class TokenizeContext:
 
     source_index: int = 0
     argument_start_index: int = 0
-    argument_end_index: int = 0
 
     state_start_index = 0
     state: TokenizerState = TokenizerState.UNQUOTED

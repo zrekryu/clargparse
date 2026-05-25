@@ -48,18 +48,19 @@ def tokenize(source: str) -> list[TokenizerToken]:
             case _:
                 assert_never(context.state)
 
-    if context.buffer:
-        context.argument_end_index = context.source_index
-        _flush_buffer(context)
+    _flush_buffer(context)
 
     return context.tokens
 
 
 def _flush_buffer(context: TokenizeContext) -> None:
+    if not context.buffer:
+        return
+
     value = "".join(context.buffer)
 
     token = TokenizerToken(
-        value, start_index=context.argument_start_index, end_index=context.argument_end_index
+        value, start_index=context.argument_start_index, end_index=context.source_index
     )
     context.tokens.append(token)
 
@@ -76,10 +77,7 @@ def _handle_unquoted(char: str, context: TokenizeContext) -> None:
         context.state = TokenizerState.DOUBLE_QUOTE
         context.source_index += 1
     elif char.isspace():
-        if context.buffer:
-            context.argument_end_index = context.source_index
-            _flush_buffer(context)
-
+        _flush_buffer(context)
         context.source_index += 1
     elif char == BACKSLASH:
         next_char = _peek_source_char(context.source, context.source_index)
