@@ -11,7 +11,7 @@ from .token import LexerToken
 class OptionToken(LexerToken):
     prefix: OptionPrefix
     name: str
-    value: str | None = None
+    argument: str | None = None
 
     @property
     def specifier(self) -> str:

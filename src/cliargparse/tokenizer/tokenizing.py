@@ -24,9 +24,6 @@ def tokenize(source: str) -> list[TokenizerToken]:
     context = TokenizeContext(source)
 
     while context.source_index < len(context.source):
-        if not context.buffer:
-            context.argument_start_index = context.source_index
-
         char = source[context.source_index]
 
         match context.state:
@@ -57,10 +54,16 @@ def _flush_buffer(context: TokenizeContext) -> None:
     if not context.buffer:
         return
 
+    if context.last_buffered_index is None:
+        exc_message = (
+            f"context.last_buffered_index must not be None, got {context.last_buffered_index}"
+        )
+        raise RuntimeError(exc_message)
+
     value = "".join(context.buffer)
 
     token = TokenizerToken(
-        value, start_index=context.argument_start_index, end_index=context.source_index
+        value, start_index=context.token_start_index, end_index=context.last_buffered_index + 1
     )
     context.tokens.append(token)
 
@@ -84,13 +87,19 @@ def _handle_unquoted(char: str, context: TokenizeContext) -> None:
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
 
-        if next_char in QUOTES or next_char == BACKSLASH:
+        if next_char in QUOTES or next_char == BACKSLASH or next_char.isspace():
             context.buffer.append(next_char)
+            context.last_buffered_index = context.source_index + 1
             context.source_index += 2
+
         else:
             raise InvalidEscapeSequenceError(next_char, context.source_index)
     else:
+        if not context.buffer:
+            context.token_start_index = context.source_index
+
         context.buffer.append(char)
+        context.last_buffered_index = context.source_index
         context.source_index += 1
 
 
@@ -100,7 +109,11 @@ def _handle_single_quote(char: str, context: TokenizeContext) -> None:
         context.state = TokenizerState.UNQUOTED
         context.source_index += 1
     else:
+        if not context.buffer:
+            context.token_start_index = context.source_index
+
         context.buffer.append(char)
+        context.last_buffered_index = context.source_index
         context.source_index += 1
 
 
@@ -114,13 +127,18 @@ def _handle_double_quote(char: str, context: TokenizeContext) -> None:
         if not next_char:
             raise UnterminatedEscapeSequenceError(context.source_index)
 
-        if next_char in QUOTES or next_char == BACKSLASH:
+        if next_char in QUOTES or next_char == BACKSLASH or next_char.isspace():
             context.buffer.append(next_char)
+            context.last_buffered_index = context.source_index + 1
             context.source_index += 2
         else:
             raise InvalidEscapeSequenceError(next_char, context.source_index)
     else:
+        if not context.buffer:
+            context.token_start_index = context.source_index
+
         context.buffer.append(char)
+        context.last_buffered_index = context.source_index
         context.source_index += 1
 
 

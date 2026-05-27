@@ -156,13 +156,13 @@ def _consume_and_validate_option_arguments(
     option: Option[Any],
     token_stream: TokenStream,
 ) -> tuple[Any, ...]:
-    if not option.takes_arguments and token.value is not None:
-        raise OptionTakesNoArgumentsError(token.specifier, token.value)
+    if not option.takes_arguments and token.argument is not None:
+        raise OptionTakesNoArgumentsError(token.specifier, token.argument)
 
     values: tuple[Any, ...]
     if option.takes_arguments:
-        if token.value is not None:
-            values = (option.type_converter(token.value),)
+        if token.argument is not None:
+            values = (option.type_converter(token.argument),)
         else:
             values = _consume_arguments(
                 option.num_args,
@@ -195,9 +195,9 @@ def _handle_command(token: ArgumentToken, context: ParseContext) -> None:
 
 
 def _parse_command(token: ArgumentToken, context: ParseContext) -> Command:
-    command = context.node.command.get_subcommand(token.argument)
+    command = context.node.command.get_subcommand(token.token.value)
     if not command:
-        raise UnknownCommandError(token.argument)
+        raise UnknownCommandError(token.token.value)
 
     return command
 
@@ -210,7 +210,7 @@ def _handle_positional(token: ArgumentToken, context: ParseContext) -> None:
 def _parse_positional(token: ArgumentToken, context: ParseContext) -> PositionalNode:
     positional = context.node.command.get_positional_by_index(context.positional_index)
     if not positional:
-        raise UnexpectedPositionalArgumentError(token.argument) from None
+        raise UnexpectedPositionalArgumentError(token.token.value) from None
 
     arguments = _consume_arguments(
         positional.num_args,
@@ -264,7 +264,7 @@ def _consume_arguments(
             case _:
                 assert_never(num_args)
 
-        values.append(type_converter(token.argument))
+        values.append(type_converter(token.token.value))
 
         token_stream.consume()
 

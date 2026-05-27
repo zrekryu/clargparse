@@ -4,7 +4,6 @@ requires-python = ">=3.12"
 version = "0.0.1"
 
 [tool.mypy]
-mypy_path = "src"
 python_version = "3.12"
 strict = true
 warn_no_return = true
@@ -24,14 +23,13 @@ quote-style = "double"
 
 [tool.ruff.lint]
 ignore = [
-    "ANN401",  # any-type
-    "COM812",  # missing-trailing-comma
-    "D",  # pydocstyle
-    "DOC",  # pydoclint
-    "PLR0913",  # too-many-arguments,
+  "ANN401", # any-type
+  "COM812", # missing-trailing-comma
+  "D", # pydocstyle
+  "DOC", # pydoclint
+  "PLR0913", # too-many-arguments
 ]
 select = ["ALL"]
-
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -39,12 +37,12 @@ force-sort-within-sections = true
 known-first-party = ["cliargparser"]
 lines-after-imports = 2
 
-[tool.tomlsort]
-sort_inline_tables = true
-sort_table_keys = true
-spaces_before_inline_comment = 2
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = true
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+  "INP001", # implicit-namespace-package
+  "S101", # assert
+]
 
-[tool.tomlsort.overrides."tool.ruff.lint.ignore"]
-inline_arrays = true
+[tool.tomlsort]
+all = true
+trailing_comma_inline_array = true

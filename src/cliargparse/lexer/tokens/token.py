@@ -11,7 +11,3 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class LexerToken:
     token: TokenizerToken
-
-    @property
-    def argument(self) -> str:
-        return self.token.argument

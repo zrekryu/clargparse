@@ -7,4 +7,6 @@ from .token import LexerToken
 
 @dataclass(frozen=True)
 class ArgumentToken(LexerToken):
-    pass
+    @property
+    def argument(self) -> str:
+        return self.token.value

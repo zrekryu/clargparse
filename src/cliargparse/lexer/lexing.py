@@ -16,78 +16,72 @@ if TYPE_CHECKING:
 
 
 END_OF_OPTIONS: Final[str] = "--"
-OPTION_VALUE_DELIMITER: Final[str] = "="
+OPTION_ARGUMENT_DELIMITER: Final[str] = "="
 
 
 def lex(tokens: Iterable[TokenizerToken]) -> Generator[LexerTokenUnion]:
     end_of_options = False
 
     for token in tokens:
-        argument = token.argument
+        value = token.value
         if not end_of_options:
-            if argument == END_OF_OPTIONS:
+            if value == END_OF_OPTIONS:
                 end_of_options = True
-            elif argument == OptionPrefix.SHORT:
+            elif value == OptionPrefix.SHORT:
                 yield ArgumentToken(token)
-            elif argument.startswith(OptionPrefix.LONG):
+            elif value.startswith(OptionPrefix.LONG):
                 yield _lex_long_option_prefix(token)
-            elif argument.startswith(OptionPrefix.SHORT):
-                _lex_short_option_prefix(token)
+            elif value.startswith(OptionPrefix.SHORT):
+                yield _lex_short_option_prefix(token)
         else:
             yield ArgumentToken(token)
 
 
 def _lex_long_option_prefix(token: TokenizerToken) -> OptionToken | ArgumentToken:
     prefix_len = len(OptionPrefix.LONG)
-    first_char = token.argument[prefix_len : prefix_len + 1]
+    first_char = token.value[prefix_len : prefix_len + 1]
 
-    if first_char.isalpha():
-        return _lex_long_option(token)
     if first_char.isdigit():
         return ArgumentToken(token)
 
-    exc_message = f"unreachable code reached: {token}"
-    raise AssertionError(exc_message)
+    return _lex_long_option(token)
 
 
 def _lex_short_option_prefix(
     token: TokenizerToken,
 ) -> OptionToken | ShortOptionGroupToken | ArgumentToken:
     prefix_len = len(OptionPrefix.SHORT)
-    first_char = token.argument[prefix_len : prefix_len + 1]
+    first_char = token.value[prefix_len : prefix_len + 1]
 
-    if first_char.isalpha():
-        return _lex_short_option_or_group(token)
     if first_char.isdigit():
         return ArgumentToken(token)
 
-    exc_message = f"unreachable code reached: {token}"
-    raise AssertionError(exc_message)
+    return _lex_short_option_or_group(token)
 
 
 def _lex_long_option(token: TokenizerToken) -> OptionToken:
-    value: str | None
-    name, sep, value = token.argument.removeprefix(OptionPrefix.LONG).partition(
-        OPTION_VALUE_DELIMITER,
+    argument: str | None
+    name, sep, argument = token.value.removeprefix(OptionPrefix.LONG).partition(
+        OPTION_ARGUMENT_DELIMITER,
     )
 
     if not name:
-        raise MissingOptionNameError(token.argument)
+        raise MissingOptionNameError(token.value)
 
     if not sep:
-        value = None
+        argument = None
 
     return OptionToken(
         token=token,
         prefix=OptionPrefix.LONG,
         name=name,
-        value=value,
+        argument=argument,
     )
 
 
 def _lex_short_option_or_group(token: TokenizerToken) -> OptionToken | ShortOptionGroupToken:
-    unprefixed_argument = token.argument.removeprefix(OptionPrefix.SHORT)
-    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_VALUE_DELIMITER:
+    unprefixed_argument = token.value.removeprefix(OptionPrefix.SHORT)
+    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_ARGUMENT_DELIMITER:
         return ShortOptionGroupToken(
             token,
             tuple(OptionToken(token, OptionPrefix.SHORT, name) for name in unprefixed_argument),
@@ -97,18 +91,18 @@ def _lex_short_option_or_group(token: TokenizerToken) -> OptionToken | ShortOpti
 
 
 def _build_short_option(token: TokenizerToken, unprefixed_argument: str) -> OptionToken:
-    value: str | None
-    name, sep, value = unprefixed_argument.partition(OPTION_VALUE_DELIMITER)
+    argument: str | None
+    name, sep, argument = unprefixed_argument.partition(OPTION_ARGUMENT_DELIMITER)
 
     if len(name) > 1:
         raise ShortOptionNameTooLongError(name)
 
     if not sep:
-        value = None
+        argument = None
 
     return OptionToken(
         token=token,
         prefix=OptionPrefix.SHORT,
         name=name,
-        value=value,
+        argument=argument,
     )

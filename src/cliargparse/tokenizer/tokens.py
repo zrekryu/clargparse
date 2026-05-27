@@ -5,7 +5,7 @@ from dataclasses import KW_ONLY, dataclass
 
 @dataclass(frozen=True)
 class TokenizerToken:
-    argument: str
+    value: str
 
     _: KW_ONLY
 
@@ -13,4 +13,4 @@ class TokenizerToken:
     end_index: int | None = None
 
     def __str__(self) -> str:
-        return self.argument
+        return self.value

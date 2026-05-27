@@ -342,7 +342,7 @@ class Command(Parameter):
         if isinstance(data, str):
             tokenizer_tokens = tokenize(data)
         else:
-            tokenizer_tokens = [TokenizerToken(value, start_index=0) for value in data]
+            tokenizer_tokens = [TokenizerToken(value) for value in data]
 
         return self.parse_tokenizer_tokens(tokenizer_tokens)
 
