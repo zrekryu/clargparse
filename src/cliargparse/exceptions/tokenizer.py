@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, override
 
 from .base import CLIError
 
@@ -16,6 +16,7 @@ class UnclosedQuoteError(TokenizerError):
         self.quote = quote
         self.open_index = open_index
 
+    @override
     def __str__(self) -> str:
         return f"unclosed {self.quote!r} quote opened at index {self.open_index}"
 
@@ -27,6 +28,7 @@ class InvalidEscapeSequenceError(TokenizerError):
         self.char = char
         self.index = index
 
+    @override
     def __str__(self) -> str:
         return f"invalid escape sequence '\\{self.char}' at index {self.index}"
 
@@ -37,5 +39,6 @@ class UnterminatedEscapeSequenceError(TokenizerError):
 
         self.index = index
 
+    @override
     def __str__(self) -> str:
         return f"unterminated escape sequence at end of source (index {self.index})"

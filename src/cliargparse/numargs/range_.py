@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import override
 
 from .base import BaseNumArgs
 
@@ -29,15 +30,19 @@ class Range(BaseNumArgs):
         object.__setattr__(self, "maximum", maximum)
 
     @property
+    @override
     def expected_cardinality_repr(self) -> str:
         return f"{self.minimum}-{self.maximum} arguments"
 
     @property
+    @override
     def is_variadic(self) -> bool:
         return False
 
+    @override
     def must_stop_consumption(self, count: int, /) -> bool:
         return count >= self.maximum
 
+    @override
     def is_valid(self, count: int, /) -> bool:
         return self.minimum <= count <= self.maximum

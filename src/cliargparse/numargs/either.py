@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, override
 
 from .base import BaseNumArgs
 
@@ -20,16 +20,20 @@ class Either(BaseNumArgs):
         object.__setattr__(self, "counts", tuple(sorted(counts)))
 
     @property
+    @override
     def expected_cardinality_repr(self) -> str:
         counts = ", ".join(map(str, self.counts[:-1])) + f" or {self.counts[-1]}"
         return f"either {counts} arguments"
 
     @property
+    @override
     def is_variadic(self) -> bool:
         return False
 
+    @override
     def must_stop_consumption(self, count: int, /) -> bool:
         return count >= max(self.counts)
 
+    @override
     def is_valid(self, count: int, /) -> bool:
         return count in self.counts

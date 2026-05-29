@@ -184,7 +184,7 @@ def _consume_and_validate_option_arguments(
                     tuple(map(repr, option.choices)),
                 )
 
-    return tuple(values)
+    return values
 
 
 def _handle_command(token: ArgumentToken, context: ParseContext) -> None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import KW_ONLY, dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from cliargparse.actions import store_value_action
 
@@ -63,5 +63,6 @@ class Positional[T](Parameter):
             choices=tuple(choices or ()),
         )
 
+    @override
     def __str__(self) -> str:
         return self.name

@@ -12,6 +12,7 @@ warn_unreachable = true
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
+reportImplicitOverride = true
 
 [tool.ruff]
 line-length = 100
@@ -46,3 +47,7 @@ lines-after-imports = 2
 [tool.tomlsort]
 all = true
 trailing_comma_inline_array = true
+
+[tool.pyrefly]
+python-version = "3.12"
+preset = "strict"

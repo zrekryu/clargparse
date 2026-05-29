@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, assert_never
+from typing import TYPE_CHECKING, Any, assert_never, override
 
 from cliargparse import numargs
 from cliargparse.enums import OptionPrefix
@@ -21,6 +21,7 @@ class UnknownOptionError(ParserError):
 
         self.specifier = specifier
 
+    @override
     def __str__(self) -> str:
         return f"unknown option: {self.specifier}"
 
@@ -31,6 +32,7 @@ class UnknownLongOptionError(UnknownOptionError):
 
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return f"unknown long option: {self.specifier}"
 
@@ -41,6 +43,7 @@ class UnknownShortOptionError(UnknownOptionError):
 
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return f"unknown short option: {self.specifier}"
 
@@ -51,6 +54,7 @@ class UnknownShortOptionInGroupError(UnknownShortOptionError):
 
         self.group = group
 
+    @override
     def __str__(self) -> str:
         return f"unknown short option {self.name!r} in group {self.group!r}"
 
@@ -62,6 +66,7 @@ class OptionTakesNoArgumentsError(ParserError):
         self.specifier = specifier
         self.argument = argument
 
+    @override
     def __str__(self) -> str:
         return f"option {self.specifier!r} takes no argument, but got {self.argument!r}"
 
@@ -73,6 +78,7 @@ class OptionTakingArgumentInGroupError(ParserError):
         self.name = name
         self.group = group
 
+    @override
     def __str__(self) -> str:
         return (
             f"option {self.name!r} in group "
@@ -94,6 +100,7 @@ class MissingOptionArgumentsError(ParserError):
         self.num_args = num_args
         self.received_num_args = received_num_args
 
+    @override
     def __str__(self) -> str:
         match self.num_args:
             case numargs.BaseNumArgs():
@@ -119,6 +126,7 @@ class InvalidOptionChoiceError(ParserError):
         self.choice = choice
         self.choices = choices
 
+    @override
     def __str__(self) -> str:
         return (
             f"invalid choice {self.choice!r} "
@@ -133,6 +141,7 @@ class MissingRequiredOptionsError(ParserError):
 
         self.options = options
 
+    @override
     def __str__(self) -> str:
         return (
             f"missing required options: {', '.join(option.display_name for option in self.options)}"
@@ -144,6 +153,7 @@ class MutexOptionCannotCoexistError(ParserError):
         self.specifier = specifier
         self.conflicts = conflicts
 
+    @override
     def __str__(self) -> str:
         conflicts = ", ".join(map(repr, self.conflicts))
         return f"option {self.specifier!r} cannot coexist with {conflicts}"
@@ -153,6 +163,7 @@ class MissingRequiredMutexOptionError(ParserError):
     def __init__(self, group: MutexOptionGroup) -> None:
         self.group = group
 
+    @override
     def __str__(self) -> str:
         options = ", ".join(option.display_name for option in self.group.options)
         return f"one of the mutually exclusive options ({options}) is required"

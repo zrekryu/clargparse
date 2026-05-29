@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, assert_never
+from typing import TYPE_CHECKING, Any, assert_never, override
 
 from cliargparse import numargs
 
@@ -26,6 +26,7 @@ class MissingPositionalArgumentsError(ParserError):
         self.num_args = num_args
         self.received_num_args = received_num_args
 
+    @override
     def __str__(self) -> str:
         match self.num_args:
             case numargs.BaseNumArgs():
@@ -44,6 +45,7 @@ class UnexpectedPositionalArgumentError(ParserError):
 
         self.argument = argument
 
+    @override
     def __str__(self) -> str:
         return f"unexpected positional argument {self.argument!r}"
 
@@ -61,6 +63,7 @@ class InvalidPositionalChoiceError(ParserError):
         self.choice = choice
         self.choices = choices
 
+    @override
     def __str__(self) -> str:
         return (
             f"invalid choice {self.choice!r} "
@@ -78,6 +81,7 @@ class MissingRequiredPositionalsError(ParserError):
 
         self.positionals = positionals
 
+    @override
     def __str__(self) -> str:
         return (
             "missing required positionals: "

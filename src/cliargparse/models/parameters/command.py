@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 
 from cliargparse import numargs
 from cliargparse.enums import ParseMode
@@ -354,9 +354,11 @@ class Command(Parameter):
         node = parse(lexer_tokens, self)
         return ParsedCommandInput.from_node(node)
 
+    @override
     def __str__(self) -> str:
         return self.name
 
+    @override
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("

@@ -33,6 +33,8 @@ def lex(tokens: Iterable[TokenizerToken]) -> Generator[LexerTokenUnion]:
                 yield _lex_long_option_prefix(token)
             elif value.startswith(OptionPrefix.SHORT):
                 yield _lex_short_option_prefix(token)
+            else:
+                yield ArgumentToken(token)
         else:
             yield ArgumentToken(token)
 

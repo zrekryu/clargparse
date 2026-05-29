@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import KW_ONLY, dataclass
-from typing import TYPE_CHECKING, assert_never
+from typing import TYPE_CHECKING, assert_never, override
 
 from cliargparse import numargs
 from cliargparse.actions import (
@@ -172,6 +172,7 @@ class Option[T](Parameter):
             required=required,
         )
 
+    @override
     def __str__(self) -> str:
         return (
             long_specifiers[0]

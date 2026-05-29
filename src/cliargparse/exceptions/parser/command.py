@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from .base import ParserError
 
@@ -17,6 +17,7 @@ class UnknownCommandError(ParserError):
 
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return f"unknown command: {self.name}"
 
@@ -32,6 +33,7 @@ class SubcommandRequiredError(ParserError):
         self.name = name
         self.subcommands = subcommands
 
+    @override
     def __str__(self) -> str:
         subcommands = ", ".join(subcommand.name for subcommand in self.subcommands)
         return f"command {self.name!r} requires a subcommand (subcommands: {subcommands})"
