@@ -9,10 +9,14 @@ strict = true
 warn_no_return = true
 warn_unreachable = true
 
+[tool.pyrefly]
+preset = "strict"
+python-version = "3.12"
+
 [tool.pyright]
 pythonVersion = "3.12"
-typeCheckingMode = "strict"
 reportImplicitOverride = true
+typeCheckingMode = "strict"
 
 [tool.ruff]
 line-length = 100
@@ -48,7 +52,3 @@ lines-after-imports = 2
 [tool.tomlsort]
 all = true
 trailing_comma_inline_array = true
-
-[tool.pyrefly]
-python-version = "3.12"
-preset = "strict"
