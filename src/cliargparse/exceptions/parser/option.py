@@ -159,7 +159,7 @@ class MutexOptionCannotCoexistError(ParserError):
         return f"option {self.specifier!r} cannot coexist with {conflicts}"
 
 
-class MissingRequiredMutexOptionError(ParserError):
+class MissingRequiredMutexOptionFromGroupError(ParserError):
     def __init__(self, group: MutexOptionGroup) -> None:
         self.group = group
 

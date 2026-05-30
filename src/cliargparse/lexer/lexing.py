@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from cliargparse.enums import OptionPrefix
 from cliargparse.exceptions import MissingOptionNameError, ShortOptionNameTooLongError
 
+from .delimiters import END_OF_OPTIONS, OPTION_ARGUMENT
 from .tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
 
 
@@ -13,10 +14,6 @@ if TYPE_CHECKING:
 
     from cliargparse.hints import LexerTokenUnion
     from cliargparse.tokenizer.tokens import TokenizerToken
-
-
-END_OF_OPTIONS: Final[str] = "--"
-OPTION_ARGUMENT_DELIMITER: Final[str] = "="
 
 
 def lex(tokens: Iterable[TokenizerToken]) -> Generator[LexerTokenUnion]:
@@ -63,9 +60,7 @@ def _lex_short_option_prefix(
 
 def _lex_long_option(token: TokenizerToken) -> OptionToken:
     argument: str | None
-    name, sep, argument = token.value.removeprefix(OptionPrefix.LONG).partition(
-        OPTION_ARGUMENT_DELIMITER,
-    )
+    name, sep, argument = token.value.removeprefix(OptionPrefix.LONG).partition(OPTION_ARGUMENT)
 
     if not name:
         raise MissingOptionNameError(token.value)
@@ -83,7 +78,7 @@ def _lex_long_option(token: TokenizerToken) -> OptionToken:
 
 def _lex_short_option_or_group(token: TokenizerToken) -> OptionToken | ShortOptionGroupToken:
     unprefixed_argument = token.value.removeprefix(OptionPrefix.SHORT)
-    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_ARGUMENT_DELIMITER:
+    if len(unprefixed_argument) > 1 and unprefixed_argument[1] != OPTION_ARGUMENT:
         return ShortOptionGroupToken(
             token,
             tuple(OptionToken(token, OptionPrefix.SHORT, name) for name in unprefixed_argument),
@@ -94,7 +89,7 @@ def _lex_short_option_or_group(token: TokenizerToken) -> OptionToken | ShortOpti
 
 def _build_short_option(token: TokenizerToken, unprefixed_argument: str) -> OptionToken:
     argument: str | None
-    name, sep, argument = unprefixed_argument.partition(OPTION_ARGUMENT_DELIMITER)
+    name, sep, argument = unprefixed_argument.partition(OPTION_ARGUMENT)
 
     if len(name) > 1:
         raise ShortOptionNameTooLongError(name)

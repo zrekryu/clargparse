@@ -3,7 +3,7 @@ from .command import SubcommandRequiredError, UnknownCommandError
 from .option import (
     InvalidOptionChoiceError,
     MissingOptionArgumentsError,
-    MissingRequiredMutexOptionError,
+    MissingRequiredMutexOptionFromGroupError,
     MissingRequiredOptionsError,
     MutexOptionCannotCoexistError,
     OptionTakesNoArgumentsError,
@@ -26,7 +26,7 @@ __all__ = [
     "InvalidPositionalChoiceError",
     "MissingOptionArgumentsError",
     "MissingPositionalArgumentsError",
-    "MissingRequiredMutexOptionError",
+    "MissingRequiredMutexOptionFromGroupError",
     "MissingRequiredOptionsError",
     "MissingRequiredPositionalsError",
     "MutexOptionCannotCoexistError",

@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from cliargparse.enums import OptionPrefix
+from cliargparse.lexer.delimiters import OPTION_ARGUMENT
+from cliargparse.tokenizer.tokens import TokenizerToken
 
+from .argument import ArgumentToken
 from .token import LexerToken
 
 
@@ -24,3 +27,15 @@ class OptionToken(LexerToken):
     @property
     def is_short(self) -> bool:
         return self.prefix == OptionPrefix.SHORT
+
+    @property
+    def argument_token(self) -> ArgumentToken | None:
+        if self.argument is None:
+            return None
+
+        start_index = (self.token.start_index or 0) + self.token.value.find(OPTION_ARGUMENT) + 1
+        return ArgumentToken(
+            token=TokenizerToken(
+                self.argument, start_index=start_index, end_index=start_index + len(self.argument)
+            )
+        )

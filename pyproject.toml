@@ -29,6 +29,7 @@ ignore = [
   "D", # pydocstyle
   "DOC", # pydoclint
   "PLR0913", # too-many-arguments
+  "S101", # assert
 ]
 select = ["ALL"]
 

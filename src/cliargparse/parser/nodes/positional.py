@@ -11,6 +11,6 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class PositionalNode:
-    token: ArgumentToken
     positional: Positional[Any]
+    argument_tokens: tuple[ArgumentToken, ...]
     values: Any

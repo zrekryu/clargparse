@@ -9,7 +9,7 @@ from cliargparse.exceptions import (
     InvalidPositionalChoiceError,
     MissingOptionArgumentsError,
     MissingPositionalArgumentsError,
-    MissingRequiredMutexOptionError,
+    MissingRequiredMutexOptionFromGroupError,
     MissingRequiredOptionsError,
     MissingRequiredPositionalsError,
     MutexOptionCannotCoexistError,
@@ -92,15 +92,17 @@ def _parse_long_option(token: OptionToken, context: ParseContext) -> OptionNode:
     if not option:
         raise UnknownLongOptionError(token.name)
 
-    arguments = _consume_and_validate_option_arguments(token, option, context.token_stream)
+    argument_tokens, arguments = _consume_and_validate_option_arguments(
+        token, option, context.token_stream
+    )
 
     current_value: Any | None = None
     if current_option := context.node.options.get(option):
         current_value = current_option.values
 
-    values = option.action(option, arguments, current_value=current_value)
+    values = option.action(option, argument_tokens, arguments, current_value=current_value)
 
-    return OptionNode(token, option, values)
+    return OptionNode(token, option, argument_tokens, values)
 
 
 def _handle_short_option(token: OptionToken, context: ParseContext) -> None:
@@ -113,15 +115,17 @@ def _parse_short_option(token: OptionToken, context: ParseContext) -> OptionNode
     if not option:
         raise UnknownShortOptionError(token.name)
 
-    arguments = _consume_and_validate_option_arguments(token, option, context.token_stream)
+    argument_tokens, arguments = _consume_and_validate_option_arguments(
+        token, option, context.token_stream
+    )
 
     current_value: Any | None = None
     if current_option := context.node.options.get(option):
         current_value = current_option.values
 
-    values = option.action(option, arguments, current_value=current_value)
+    values = option.action(option, argument_tokens, arguments, current_value=current_value)
 
-    return OptionNode(token, option, values)
+    return OptionNode(token, option, argument_tokens, values)
 
 
 def _handle_short_option_group(token: ShortOptionGroupToken, context: ParseContext) -> None:
@@ -146,45 +150,51 @@ def _parse_grouped_short_option(
     if current_option := context.node.options.get(option):
         current_value = current_option.values
 
-    values = option.action(option, (), current_value=current_value)
+    values = option.action(option, (), (), current_value=current_value)
 
-    return OptionNode(token, option, values)
+    return OptionNode(token, option, (), values)
 
 
 def _consume_and_validate_option_arguments(
     token: OptionToken,
     option: Option[Any],
     token_stream: TokenStream,
-) -> tuple[Any, ...]:
+) -> tuple[tuple[ArgumentToken, ...], tuple[Any, ...]]:
     if not option.takes_arguments and token.argument is not None:
         raise OptionTakesNoArgumentsError(token.specifier, token.argument)
 
-    values: tuple[Any, ...]
+    argument_tokens: tuple[ArgumentToken, ...]
+    arguments: tuple[Any, ...]
     if option.takes_arguments:
         if token.argument is not None:
-            values = (option.type_converter(token.argument),)
+            assert token.argument_token is not None
+
+            argument_tokens, arguments = (
+                (token.argument_token,),
+                (option.type_converter(token.argument),),
+            )
         else:
-            values = _consume_arguments(
+            argument_tokens, arguments = _consume_arguments(
                 option.num_args,
                 token_stream,
                 type_converter=option.type_converter,
             )
     else:
-        values = ()
+        argument_tokens = arguments = ()
 
-    if not _is_valid_num_args_count(option.num_args, len(values)):
-        raise MissingOptionArgumentsError(token.specifier, option.num_args, len(values))
+    if not _is_valid_num_args_count(option.num_args, len(arguments)):
+        raise MissingOptionArgumentsError(token.specifier, option.num_args, len(arguments))
 
     if option.choices:
-        for value in values:
-            if value not in option.choices:
+        for argument in arguments:
+            if argument not in option.choices:
                 raise InvalidOptionChoiceError(
                     token.specifier,
-                    value,
+                    argument,
                     tuple(map(repr, option.choices)),
                 )
 
-    return values
+    return argument_tokens, arguments
 
 
 def _handle_command(token: ArgumentToken, context: ParseContext) -> None:
@@ -212,7 +222,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
     if not positional:
         raise UnexpectedPositionalArgumentError(token.token.value) from None
 
-    arguments = _consume_arguments(
+    argument_tokens, arguments = _consume_arguments(
         positional.num_args,
         context.token_stream,
         type_converter=positional.type_converter,
@@ -222,7 +232,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
     if current_positional := context.node.positionals.get(positional):
         current_value = current_positional.values
 
-    values = positional.action(positional, arguments, current_value=current_value)
+    values = positional.action(positional, argument_tokens, arguments, current_value=current_value)
 
     if not _is_valid_num_args_count(positional.num_args, len(values)):
         raise MissingPositionalArgumentsError(positional.name, positional.num_args, len(values))
@@ -238,7 +248,7 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
 
     context.positional_index += 1
 
-    return PositionalNode(token, positional, values)
+    return PositionalNode(positional, argument_tokens, values)
 
 
 def _consume_arguments(
@@ -246,12 +256,10 @@ def _consume_arguments(
     token_stream: TokenStream,
     *,
     type_converter: Callable[[str], Any] = str,
-) -> tuple[Any, ...]:
+) -> tuple[tuple[ArgumentToken, ...], tuple[Any, ...]]:
+    tokens: list[ArgumentToken] = []
     values: list[Any] = []
-    while (token := token_stream.peek()) is not None:
-        if not isinstance(token, ArgumentToken):
-            break
-
+    while isinstance(token := token_stream.peek(), ArgumentToken):
         count = len(values)
 
         match num_args:
@@ -264,11 +272,12 @@ def _consume_arguments(
             case _:
                 assert_never(num_args)
 
+        tokens.append(token)
         values.append(type_converter(token.token.value))
 
         token_stream.consume()
 
-    return tuple(values)
+    return tuple(tokens), tuple(values)
 
 
 def _is_valid_num_args_count(num_args: int | numargs.BaseNumArgs, count: int) -> bool:
@@ -324,7 +333,7 @@ def _validate_mutex_option_groups(
             raise MutexOptionCannotCoexistError(found_specifiers[0], found_specifiers[1:])
 
         if group.required and not found_specifiers:
-            raise MissingRequiredMutexOptionError(group)
+            raise MissingRequiredMutexOptionFromGroupError(group)
 
 
 def _validate_positionals(

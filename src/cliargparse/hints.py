@@ -17,6 +17,7 @@ class Action[P: Parameter](Protocol):
     def __call__(
         self,
         parameter: P,
+        tokens: Sequence[ArgumentToken],
         values: Sequence[Any],
         *,
         current_value: Any = None,

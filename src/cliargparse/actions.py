@@ -6,11 +6,13 @@ from typing import TYPE_CHECKING, Any, Literal
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from .lexer.tokens import ArgumentToken
     from .models.parameters import Option, Positional
 
 
 def store_value_action(
     parameter: Option[Any] | Positional[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],
     *,
     current_value: Any = None,  # noqa: ARG001
@@ -20,6 +22,7 @@ def store_value_action(
 
 def store_present_action(
     parameter: Option[Any],
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],  # noqa: ARG001
     *,
     current_value: Any = None,  # noqa: ARG001
@@ -29,6 +32,7 @@ def store_present_action(
 
 def store_true_action(
     parameter: Option[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],  # noqa: ARG001
     *,
     current_value: bool | None = None,  # noqa: ARG001
@@ -38,6 +42,7 @@ def store_true_action(
 
 def store_false_action(
     parameter: Option[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],  # noqa: ARG001
     *,
     current_value: bool | None = None,  # noqa: ARG001
@@ -47,6 +52,7 @@ def store_false_action(
 
 def append_present_action(
     parameter: Option[Any],
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],  # noqa: ARG001
     *,
     current_value: list[Any] | None = None,
@@ -60,6 +66,7 @@ def append_present_action(
 
 def append_value_action(
     parameter: Option[Any] | Positional[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],
     *,
     current_value: list[Any] | None = None,
@@ -75,6 +82,7 @@ def append_value_action(
 
 def extend_values_action(
     parameter: Option[Any] | Positional[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],
     *,
     current_value: list[Any] | None = None,
@@ -88,11 +96,9 @@ def extend_values_action(
 
 def count_presence_action(
     parameter: Option[Any],  # noqa: ARG001
+    tokens: Sequence[ArgumentToken],  # noqa: ARG001
     values: Sequence[Any],  # noqa: ARG001
     *,
     current_value: int | None = None,
 ) -> int:
-    if current_value is None:
-        return 1
-
-    return current_value + 1
+    return current_value + 1 if current_value else 1
