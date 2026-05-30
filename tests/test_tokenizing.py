@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import pytest
 
-from cliargparse.exceptions import (
+from clargparse.exceptions import (
     InvalidEscapeSequenceError,
     UnclosedQuoteError,
     UnterminatedEscapeSequenceError,
 )
-from cliargparse.tokenizer import tokenize
-from cliargparse.tokenizer.tokens import TokenizerToken
+from clargparse.tokenizer import tokenize
+from clargparse.tokenizer.tokens import TokenizerToken
 
 
 def test_tokenize_unquoted() -> None:

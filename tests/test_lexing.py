@@ -1,7 +1,9 @@
-from cliargparse.enums import OptionPrefix
-from cliargparse.lexer import lex
-from cliargparse.lexer.tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
-from cliargparse.tokenizer import tokenize
+from __future__ import annotations
+
+from clargparse.enums import OptionPrefix
+from clargparse.lexer import lex
+from clargparse.lexer.tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
+from clargparse.tokenizer import tokenize
 
 
 def test_lex_long_option_name_starts_with_digit() -> None:
