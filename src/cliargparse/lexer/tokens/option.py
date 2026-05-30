@@ -33,7 +33,7 @@ class OptionToken(LexerToken):
         if self.argument is None:
             return None
 
-        start_index = (self.token.start_index or 0) + self.token.value.find(OPTION_ARGUMENT) + 1
+        start_index = (self.token.start_index or 0) + self.token.value.index(OPTION_ARGUMENT) + 1
         return ArgumentToken(
             token=TokenizerToken(
                 self.argument, start_index=start_index, end_index=start_index + len(self.argument)
