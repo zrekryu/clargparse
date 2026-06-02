@@ -51,7 +51,7 @@ class Positional[T](Parameter):
             num_args = 1
 
         if isinstance(num_args, int) and num_args <= 0:
-            exc_message = f"expected positional num_args > 0, got {num_args}"
+            exc_message = f"expected num_args > 0, got {num_args}"
             raise ValueError(exc_message)
 
         return cls(

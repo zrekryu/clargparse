@@ -135,9 +135,9 @@ class Option[T](Parameter):
 
         if num_args is None:
             if action in (
-                store_present_action,
                 store_true_action,
                 store_false_action,
+                store_present_action,
                 append_present_action,
                 count_presence_action,
             ):
@@ -148,13 +148,6 @@ class Option[T](Parameter):
         if action in (store_present_action, append_present_action) and present is None:
             action_name = getattr(action, "__name__", repr(action))
             exc_message = f"Missing present argument for action {action_name!r}"
-            raise ValueError(exc_message)
-
-        if present is not None and num_args != numargs.OPTIONAL:
-            exc_message = (
-                f"present argument must be used with num args {numargs.OPTIONAL!r}, "
-                f"got {num_args!r}"
-            )
             raise ValueError(exc_message)
 
         return cls(

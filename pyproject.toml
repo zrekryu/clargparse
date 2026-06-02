@@ -20,6 +20,7 @@ typeCheckingMode = "strict"
 
 [tool.ruff]
 line-length = 100
+src = ["src"]
 target-version = "py312"
 
 [tool.ruff.format]

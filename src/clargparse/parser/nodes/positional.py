@@ -13,4 +13,4 @@ if TYPE_CHECKING:
 class PositionalNode:
     positional: Positional[Any]
     argument_tokens: tuple[ArgumentToken, ...]
-    values: Any
+    value: Any

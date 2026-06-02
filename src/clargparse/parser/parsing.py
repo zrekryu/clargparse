@@ -98,11 +98,11 @@ def _parse_long_option(token: OptionToken, context: ParseContext) -> OptionNode:
 
     current_value: Any | None = None
     if current_option := context.node.options.get(option):
-        current_value = current_option.values
+        current_value = current_option.value
 
-    values = option.action(option, argument_tokens, arguments, current_value=current_value)
+    value = option.action(option, argument_tokens, arguments, current_value=current_value)
 
-    return OptionNode(token, option, argument_tokens, values)
+    return OptionNode(token, option, argument_tokens, value)
 
 
 def _handle_short_option(token: OptionToken, context: ParseContext) -> None:
@@ -121,11 +121,11 @@ def _parse_short_option(token: OptionToken, context: ParseContext) -> OptionNode
 
     current_value: Any | None = None
     if current_option := context.node.options.get(option):
-        current_value = current_option.values
+        current_value = current_option.value
 
-    values = option.action(option, argument_tokens, arguments, current_value=current_value)
+    value = option.action(option, argument_tokens, arguments, current_value=current_value)
 
-    return OptionNode(token, option, argument_tokens, values)
+    return OptionNode(token, option, argument_tokens, value)
 
 
 def _handle_short_option_group(token: ShortOptionGroupToken, context: ParseContext) -> None:
@@ -148,11 +148,11 @@ def _parse_grouped_short_option(
 
     current_value: Any | None = None
     if current_option := context.node.options.get(option):
-        current_value = current_option.values
+        current_value = current_option.value
 
-    values = option.action(option, (), (), current_value=current_value)
+    value = option.action(option, (), (), current_value=current_value)
 
-    return OptionNode(token, option, (), values)
+    return OptionNode(token, option, (), value)
 
 
 def _consume_and_validate_option_arguments(
@@ -228,27 +228,27 @@ def _parse_positional(token: ArgumentToken, context: ParseContext) -> Positional
         type_converter=positional.type_converter,
     )
 
+    if not _is_valid_num_args_count(positional.num_args, len(arguments)):
+        raise MissingPositionalArgumentsError(positional.name, positional.num_args, len(arguments))
+
     current_value: Any | None = None
     if current_positional := context.node.positionals.get(positional):
-        current_value = current_positional.values
-
-    values = positional.action(positional, argument_tokens, arguments, current_value=current_value)
-
-    if not _is_valid_num_args_count(positional.num_args, len(values)):
-        raise MissingPositionalArgumentsError(positional.name, positional.num_args, len(values))
+        current_value = current_positional.value
 
     if positional.choices:
-        for value in values:
-            if value not in positional.choices:
+        for argument in arguments:
+            if argument not in positional.choices:
                 raise InvalidPositionalChoiceError(
                     positional.name,
-                    value,
+                    argument,
                     tuple(map(repr, positional.choices)),
                 )
 
+    value = positional.action(positional, argument_tokens, arguments, current_value=current_value)
+
     context.positional_index += 1
 
-    return PositionalNode(positional, argument_tokens, values)
+    return PositionalNode(positional, argument_tokens, value)
 
 
 def _consume_arguments(
@@ -258,9 +258,9 @@ def _consume_arguments(
     type_converter: Callable[[str], Any] = str,
 ) -> tuple[tuple[ArgumentToken, ...], tuple[Any, ...]]:
     tokens: list[ArgumentToken] = []
-    values: list[Any] = []
+    value: list[Any] = []
     while isinstance(token := token_stream.peek(), ArgumentToken):
-        count = len(values)
+        count = len(value)
 
         match num_args:
             case numargs.BaseNumArgs():
@@ -273,11 +273,11 @@ def _consume_arguments(
                 assert_never(num_args)
 
         tokens.append(token)
-        values.append(type_converter(token.token.value))
+        value.append(type_converter(token.token.value))
 
         token_stream.consume()
 
-    return tuple(tokens), tuple(values)
+    return tuple(tokens), tuple(value)
 
 
 def _is_valid_num_args_count(num_args: int | numargs.BaseNumArgs, count: int) -> bool:

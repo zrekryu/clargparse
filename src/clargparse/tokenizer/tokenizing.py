@@ -54,11 +54,9 @@ def _flush_buffer(context: TokenizeContext) -> None:
     if not context.buffer:
         return
 
-    if context.last_buffered_index is None:
-        exc_message = (
-            f"context.last_buffered_index must not be None, got {context.last_buffered_index}"
-        )
-        raise RuntimeError(exc_message)
+    assert context.last_buffered_index is not None, (
+        f"context.last_buffered_index must not be None, got {context.last_buffered_index}"
+    )
 
     value = "".join(context.buffer)
 

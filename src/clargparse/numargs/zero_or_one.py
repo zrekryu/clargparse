@@ -7,7 +7,7 @@ from .base import BaseNumArgs
 
 
 @dataclass(frozen=True)
-class Optional(BaseNumArgs):
+class ZeroOrOne(BaseNumArgs):
     @property
     @override
     def expected_cardinality_repr(self) -> str:
@@ -27,4 +27,4 @@ class Optional(BaseNumArgs):
         return 0 <= count <= 1
 
 
-OPTIONAL: Final[Optional] = Optional()
+ZERO_OR_ONE: Final[ZeroOrOne] = ZeroOrOne()

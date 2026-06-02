@@ -14,4 +14,4 @@ class OptionNode:
     token: OptionToken
     option: Option[Any]
     argument_tokens: tuple[ArgumentToken, ...]
-    values: Any
+    value: Any

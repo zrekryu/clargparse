@@ -18,7 +18,7 @@ class Action[P: Parameter](Protocol):
         self,
         parameter: P,
         tokens: Sequence[ArgumentToken],
-        values: Sequence[Any],
+        arguments: Sequence[Any],
         *,
         current_value: Any = None,
     ) -> Any: ...

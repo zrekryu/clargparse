@@ -31,17 +31,20 @@ class ParsedCommandInput:
         for option in node.command.options:
             if option_node := node.options.get(option):
                 name_to_node[option.store_name] = option_node
-                values[option.store_name] = option_node.values
-            elif option.default is not None:
+                values[option.store_name] = option_node.value
+            else:
                 values[option.store_name] = option.default
 
         if subcommand_node := node.subcommand:
             name_to_node[subcommand_node.command.name] = subcommand_node
             values[subcommand_node.command.name] = cls.from_node(subcommand_node)
 
-        for positional, positional_node in node.positionals.items():
-            name_to_node[positional.name] = positional_node
-            values[positional.name] = positional_node.values
+        for positional in node.command.positionals:
+            if positional_node := node.positionals.get(positional):
+                name_to_node[positional.name] = positional_node
+                values[positional.name] = positional_node.value
+            else:
+                values[positional.name] = positional.default
 
         return ParsedCommandInput(node, name_to_node, values)
 
