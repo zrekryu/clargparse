@@ -12,8 +12,8 @@ from clargparse.exceptions import ParseModeError
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
-    from clargparse.hints import Action
     from clargparse.models.mutex_option_group import MutexOptionGroup
+    from clargparse.typing import Action
 
 from clargparse.models.parsed_command_input import ParsedCommandInput
 from clargparse.tokenizer import tokenize

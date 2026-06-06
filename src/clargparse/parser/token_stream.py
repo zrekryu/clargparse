@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from clargparse.hints import LexerTokenUnion
+    from clargparse.typing import LexerTokenUnion
 
 
 class TokenStream:

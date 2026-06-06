@@ -9,7 +9,7 @@ from .parameters import Command, Option
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
 
-    from clargparse.hints import Action
+    from clargparse.typing import Action
 
 
 @dataclass(frozen=True)

@@ -20,7 +20,7 @@ from .parameter import Parameter
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    from clargparse.hints import Action
+    from clargparse.typing import Action
 
 
 @dataclass(frozen=True)

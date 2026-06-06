@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from clargparse import numargs
-    from clargparse.hints import Action
+    from clargparse.typing import Action
 
 
 @dataclass(frozen=True)

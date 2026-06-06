@@ -37,9 +37,9 @@ from .token_stream import TokenStream
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from clargparse.hints import LexerTokenUnion
     from clargparse.models import MutexOptionGroup
     from clargparse.models.parameters import Command, Option, Positional
+    from clargparse.typing import LexerTokenUnion
 
 
 def parse(tokens: Iterable[LexerTokenUnion], command: Command) -> CommandNode:

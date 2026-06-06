@@ -12,8 +12,8 @@ from .tokens import ArgumentToken, OptionToken, ShortOptionGroupToken
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
-    from clargparse.hints import LexerTokenUnion
     from clargparse.tokenizer.tokens import TokenizerToken
+    from clargparse.typing import LexerTokenUnion
 
 
 def lex(tokens: Iterable[TokenizerToken]) -> Generator[LexerTokenUnion]:
