@@ -10,6 +10,7 @@ warn_no_return = true
 warn_unreachable = true
 
 [tool.pyrefly]
+min-severity = "info"
 preset = "strict"
 python-version = "3.12"
 
