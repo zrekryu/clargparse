@@ -15,15 +15,13 @@ class Range(BaseNumArgs):
         if minimum < 1:
             exc_message = f"minimum must be at least 1, got {minimum}"
             raise ValueError(exc_message)
-        if maximum < 1:
-            exc_message = f"maximum must be at least 1, got {maximum}"
+
+        if minimum == maximum:
+            exc_message = "minimum and maximum cannot be equal"
             raise ValueError(exc_message)
 
         if minimum > maximum:
             exc_message = f"minimum ({minimum}) cannot exceed maximum ({maximum})"
-            raise ValueError(exc_message)
-        if minimum == maximum:
-            exc_message = "minimum and maximum cannot be equal"
             raise ValueError(exc_message)
 
         object.__setattr__(self, "minimum", minimum)
